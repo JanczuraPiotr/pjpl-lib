@@ -4,10 +4,14 @@ project(test)
 add_executable(test_run main.cpp
         ../lib/alg.cpp
         ../lib/alg.h
+        ../lib/app_ex.cpp
+        ../lib/app_ex.h
+        ../lib/alg.h
         ../lib/DateTime.cpp
         ../lib/DateTime.h
         ../lib/DateTime-2.cpp
-        ../lib/DateTime2.h
+        ../lib/DateTime-2.h
+        ../lib/def.h
         ../lib/napisy.cpp
         ../lib/napisy.h
         ../lib/Operators.cpp
@@ -22,6 +26,7 @@ add_executable(test_run main.cpp
 
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
+include_directories(..)
 
 set(Boost_DEBUG OFF)
 find_package(Boost)
@@ -33,4 +38,5 @@ endif ()
 target_link_libraries(test_run
         ${GTEST_LIBRARIES}
         pthread
+        boost_date_time
         )

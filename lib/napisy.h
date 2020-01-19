@@ -18,7 +18,6 @@
 
 #include "conf.h"
 #include "gold.h"
-#include "Logger.h"
 
 namespace pjpl {
 

@@ -2,8 +2,6 @@
 // Created by piotr@janczura.pl on 2019.11.27
 //
 
-#include "stdafx.h"
-
 #include "strings.h"
 
 std::string strings::toString(const std::wstring &source) {

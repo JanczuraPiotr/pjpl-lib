@@ -6,9 +6,10 @@
 #define AUTOMATION_POLISHEXPRESSION_H
 
 
-#include "def.h"
-#include "alg/PolishNotation.h"
-#include "app/app_ex.h"
+#include "lib/def.h"
+#include "lib/PolishNotation.h"
+#include "lib/app_ex.h"
+#include "lib/gold.h"
 
 // @work std::wstring -> std::string
 

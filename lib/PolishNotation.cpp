@@ -5,7 +5,7 @@
 #include "PolishNotation.h"
 #include "Operators.h"
 
-namespace pjpl {
+namespace pjpl::alg {
 
 
 PolishNotation::PolishNotation()
@@ -17,7 +17,7 @@ PolishNotation::~PolishNotation()
 {
 }
 
-void PolishNotation::expression(pjpl::model::AutoId makroId, const std::wstring &expression)
+void PolishNotation::expression(pjpl::AutoId makroId, const std::wstring &expression)
 {
     postfixList.insert(std::make_pair(makroId, buildPostfix(expression)));
 }
@@ -86,7 +86,7 @@ PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &express
             stack.pop(); //usuwanie nawiasu "("
         } else {
             if (token.empty()) {
-                throw pjpl::alg::ex::Notation("token -> \"\""  , __FILE__, __LINE__);
+                throw pjpl::ex::Notation("token -> \"\""  , __FILE__, __LINE__);
             }
 
             postfix.push_back(token);
@@ -107,7 +107,7 @@ PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &express
     return postfix;
 }
 
-PolishNotation::Postfix PolishNotation::postfix(pjpl::model::AutoId macroId)
+PolishNotation::Postfix PolishNotation::postfix(pjpl::AutoId macroId)
 {
     return postfixList[macroId];
 }

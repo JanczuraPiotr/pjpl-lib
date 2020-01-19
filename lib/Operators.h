@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <map>
 
-#include "libs/napisy.h"
+#include "lib/napisy.h"
 
 namespace pjpl::alg {
 

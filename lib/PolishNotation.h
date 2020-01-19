@@ -10,7 +10,8 @@
 #include <vector>
 #include <map>
 
-#include "model/def.h"
+#include "lib/def.h"
+#include "lib/app_ex.h"
 
 namespace pjpl {
 
@@ -23,27 +24,32 @@ namespace pjpl {
         };
     };
 
-class PolishNotation {
-public:
+namespace alg {
+    class PolishNotation {
+    public:
 
-    typedef std::vector<std::wstring> Postfix;
+        typedef std::vector<std::wstring> Postfix;
 
-    explicit PolishNotation();
-    virtual ~PolishNotation();
+        explicit PolishNotation();
 
-    void expression(pjpl::model::AutoId makroId, const std::wstring &expression);
-    Postfix postfix(pjpl::model::AutoId macroId);
-    void clear();
+        virtual ~PolishNotation();
 
-private: // methods
+        void expression(pjpl::AutoId makroId, const std::wstring &expression);
 
-    Postfix buildPostfix(const std::wstring &expression);
+        Postfix postfix(pjpl::AutoId macroId);
 
-private: // attributes
+        void clear();
 
-    std::map<pjpl::model::AutoId, Postfix> postfixList;
+    private: // methods
 
-};
+        Postfix buildPostfix(const std::wstring &expression);
+
+    private: // attributes
+
+        std::map<pjpl::AutoId, Postfix> postfixList;
+
+    };
+    }
 
 }
 

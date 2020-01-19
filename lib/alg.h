@@ -10,8 +10,8 @@
 #include <vector>
 #include <sstream>
 
-#include "../def.h"
-#include "../libs/napisy.h"
+#include "lib/def.h"
+#include "lib/napisy.h"
 
 namespace pjpl::alg {
 

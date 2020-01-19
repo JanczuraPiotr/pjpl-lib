@@ -16,7 +16,7 @@ void PolishExpression::setPostfix(const pjpl::alg::PolishNotation::Postfix &post
     this->postfix = postfix;
 }
 
-pjpl::err_t PolishExpression::calculate(pjpl::alg::ParamsMap *params, bool &result)
+pjpl::err_t PolishExpression::calculate(pjpl::ParamsMap *params, bool &result)
 {
     this->params = params;
     return _logic(result);

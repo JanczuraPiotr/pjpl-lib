@@ -2,8 +2,8 @@
 // Created by piotr@janczura.pl on 2019.11.25
 //
 
-#ifndef PLAYOUT_BECKEND_DATETIME_H
-#define PLAYOUT_BECKEND_DATETIME_H
+#ifndef DATETIME_2_H
+#define DATETIME_2_H
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 
@@ -68,4 +68,4 @@ public: // lock
 };
 
 
-#endif //PLAYOUT_BECKEND_DATETIME_H
+#endif
