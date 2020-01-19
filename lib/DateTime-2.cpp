@@ -3,6 +3,8 @@
 //
 //
 
+#include "stdafx.h"
+
 #include "DateTime.h"
 
 std::string DateTime::transformFromYmD(const std::string &date)
