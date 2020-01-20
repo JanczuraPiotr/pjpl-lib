@@ -1,0 +1,2061 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1250">
+	<TITLE></TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 1.0.2  (Win32)">
+	<META NAME="CREATED" CONTENT="20020727;23410400">
+	<META NAME="CHANGEDBY" CONTENT="Piotr Janczura">
+	<META NAME="CHANGED" CONTENT="20030722;12031449">
+	<STYLE>
+	<!--
+		@page { size: 21cm 29.7cm; margin: 2cm }
+		P { margin-bottom: 0.21cm; font-family: "Arial", sans-serif }
+		TD P { margin-bottom: 0.21cm; font-family: "Arial", sans-serif }
+		TH P { margin-bottom: 0.21cm; font-family: "Arial", sans-serif; font-style: italic; font-weight: bold; text-align: center }
+		A:link { color: #000080; text-decoration: underline }
+		A:visited { color: #800000; text-decoration: underline }
+		CODE { background: transparent }
+		CODE.western { font-family: "Courier New", monospace; font-size: 10pt }
+		CODE.cjk { font-family: "Cumberland", monospace }
+		CODE.ctl { font-family: "Cumberland", monospace }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="pl-PL" LINK="#000080" VLINK="#800000">
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Mimo ciągle
+i co raz częściej publikowanych projekt&oacute;w urządzeń
+wyposażonych w port RS232 komputera PC nie znalazł się w EP opis tego
+portu i jego możliwości oferowanych programiście. W artykule
+przedstawię klasy stworzone zgodnie z opracowanym interfejsem
+komunikacji z urządzeniami. Są to dwie klasy CRS232 (o tej samej
+nazwie) jedna do pracy w dos a druga pod windows. Spos&oacute;b
+komunikacji z portem jest identyczny w obu systemach dzięki
+zastosowaniu interfejsu zgodnego z klasą CSterownik i kompilacji
+warunkowej włączającej klasę odpowiednią dla danego systemu. Nie
+opisuję funkcji i struktur potrzebnych do otwarcia konfiguracji i
+komunikacji z RS w systemie windows. Podstawowy opis tych funkcji
+znajduje się na stronach EP gdzie można dowiedzieć się szczeg&oacute;ł&oacute;w.
+Jednak lektura nie będzie zbyt przyjemna i to nie z winy autora -
+wsp&oacute;łpraca z systemem windows nie należy do przyg&oacute;d
+wartych odbycia. Natomiast budowę portu RS232 pod dosem om&oacute;wiłem
+jak potrafiłem najlepiej. Przedstawiam ten opis ponieważ będzie
+przydatny np. w rozwiązaniach wymagających specjalnych rozwiązań gdy
+czytelnik będzie chciał napisać własną obsługę RS-a albo dla
+programujących w assemblerze. Informacje zbierałem z r&oacute;żnych
+źr&oacute;deł oraz dostępnych przykład&oacute;w. Postarałem się
+przetestować pracę klasy RS232 pod windows i dos. Nie byłem jednak w
+stanie sprawdzić we wszystkich okolicznościach. Trudno je wszystkie
+wymyślić a zwłaszcza zbudować odpowiednie zestawy do test&oacute;w.
+Programy mają jednak tę przewagę że można je poprawiać na każdym
+etapie projektowania i takie poprawki jak i rozbudowa są
+przewidziane. Obecnie klasa CRS232 posiada tylko podstawowe
+&ldquo;umiejętności&rdquo;. Są to konfiguracja szybkości transmisji,
+kontroli parzystości, rozmiaru transmitowanego &ldquo;bajtu&rdquo;.
+Zapis do portu ciągu danych, odczyt z bufora ciągu danych oraz
+wymuszenie transmisji jednego znaku przed umieszczonymi uprzednio w
+buforze. Klasa CRS232 nie powiadamia o odebraniu danych ani o
+zakończeniu wysyłania. Należy samemu sprawdzać stan bufora
+wejściowego w programie gł&oacute;wnym wykonując metodę read() tak
+jak to przewidziano dla wszystkich obiekt&oacute;w klas
+dziedziczonych po CSterownik. Nie jest to najlepsze rozwiązanie ale
+najprostsze i pozwalające korzystać z CRS232 identycznie pod dos i
+windows. Należało by zaprogramować CRS232 tak by obsługa zdarzeń
+związanych z portem odbywały się poza programem gł&oacute;wnym w
+osobnym wątku. W dosie takie rozwiązanie było by bardzo kulawe i nie
+kompatybilne z windowsem. Nie obyło by się bez r&oacute;żnic w
+użytkowaniu klasy i nie było by to zbyt proste dla niezaawansowanych
+programist&oacute;w jako że programowanie wielowątkowe niesie ze sobą
+wiele dodatkowych problem&oacute;w. Rozbudowanie CRS232 dla windows o
+prace z dodatkowymi wątkami jest ciągle możliwe.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Zaczynamy od
+początku czyli od tyłu ... obudowy PC-ta gdzie umieszczone są gniazda
+port&oacute;w RS232. Występują w dw&oacute;ch odmianach 9-pinowe i
+25-pinowe oba męskie. Nie ma dla nas większego znaczenia z kt&oacute;rego
+portu będziemy korzystać bo to co jest nam potrzebne występuje w obu
+rodzajach port&oacute;w. Gniazdo 25pin wyposażone jest we wszystkie
+sygnały elektryczne obsługiwane W standardzie RS232 natomiast gniazdo
+9pin posiada pewien podzbi&oacute;r w zupełności wystarczający do
+nawiązania łączności. Wszystkie potrzebne informacje w tabeli:</FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=522 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=170>
+	<COL WIDTH=334>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=170>
+				<P ALIGN=CENTER><FONT SIZE=2>Numer wyprowadzenia</FONT></P>
+			</TH>
+			<TH WIDTH=334>
+				<P ALIGN=CENTER><FONT SIZE=2>Oznaczenie wyprowadzenia</FONT></P>
+			</TH>
+		</TR>
+	</THEAD>
+</TABLE>
+<TABLE WIDTH=522 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=76>
+	<COL WIDTH=85>
+	<COL WIDTH=335>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=76>
+				<P ALIGN=CENTER><FONT SIZE=2>25pin</FONT></P>
+			</TH>
+			<TH WIDTH=85>
+				<P ALIGN=CENTER><FONT SIZE=2>9pin</FONT></P>
+			</TH>
+			<TH WIDTH=335>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR>
+			<TD WIDTH=76 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=85>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>PG </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>masa ochronna - łącząca obudowy</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>TxD - wy, </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>dane nadawane</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>RxD - we, </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>dane odbierane</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>RTS - wy, </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>żądanie nadawania skierowane od DTE
+				do DCE</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="8" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>8</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>CTS - we, </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>gotowość do nadania danych zgłoszona
+				przez DCE do DTE</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="6" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="6" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>DSR - we,</FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>gotowość DCE - pracuje, jest sprawne
+				i gotowe do wykonania żądań z komputera sterującego</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>SG - masa sygnału</FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>stanowi odniesienie dla wszystkich
+				sygnał&oacute;w złącza</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="8" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>8</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>DCD - we, </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>poziom sygnału odbieranego przez
+				modem zawiera się w zakresie wartości prawidłowych</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="20" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>20</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>DTR - wy,</FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>gotowość DTE</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=76 SDVAL="22" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>22</FONT></P>
+			</TD>
+			<TD WIDTH=85 SDVAL="9" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>9</FONT></P>
+			</TD>
+			<TD WIDTH=335>
+				<P ALIGN=CENTER><FONT SIZE=2>RI - we</FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>wskaźnik wywołania - dzwonek -
+				skierowany z DCE do DTE</FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Objaśnienia
+do tabeli:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>DTE -
+komputer</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>DCE -
+urządzenie podłączone do komputera (często też komputer)</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pr&oacute;cz
+standardowego zastosowania poszczeg&oacute;lnych wyprowadzeń każde z
+nich może być użyte jako niezależne wejście lub wyjście jednobitowe.
+Podkreślenia wymaga fakt iż napięcia sygnał&oacute;w złącza RS232 nie
+odpowiadają standardowi TTL. </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Dla linii
+danych </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>1 logiczna
+to napięcia od -15V do -3V </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>0 logiczne
+to napięcia od 3V do 15V. </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Dla linii
+sterujących </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>1 logiczna
+to napięcia od 3V do 15V </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>0 logiczne
+to napięcia od -15V do -3V. </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Tu było
+trochę rozbieżności pomiędzy literaturą. Niekt&oacute;re źr&oacute;dła
+podają napięcia 25V i -25V w miejsce 15V i -15V.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>W
+najprostszym rozwiązaniu, stosowanym zwłaszcza w prostych
+urządzeniach, jak znane nam moduły na procesorach serii '51 stosuje
+się kabel trzyżyłowy złożony z sygnał&oacute;w SG, TxD, RxD. Aby
+wykonać połączenia należy sprawdzić kt&oacute;re piny w wybranym
+łączu odpowiadają tym sygnałom.</FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=392 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=74>
+	<COL WIDTH=50>
+	<COL WIDTH=49>
+	<COL WIDTH=69>
+	<COL WIDTH=50>
+	<COL WIDTH=51>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2>DTE</FONT></P>
+			</TH>
+			<TH WIDTH=50>
+				<P ALIGN=CENTER><FONT SIZE=2>25pin</FONT></P>
+			</TH>
+			<TH WIDTH=49>
+				<P ALIGN=CENTER><FONT SIZE=2>9pin</FONT></P>
+			</TH>
+			<TH WIDTH=69>
+				<P ALIGN=CENTER><FONT SIZE=2>DCE</FONT></P>
+			</TH>
+			<TH WIDTH=50>
+				<P ALIGN=CENTER><FONT SIZE=2>25pin</FONT></P>
+			</TH>
+			<TH WIDTH=51>
+				<P ALIGN=CENTER><FONT SIZE=2>9pin</FONT></P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR>
+			<TD WIDTH=74 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>TxD</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD WIDTH=49 VALIGN=BOTTOM SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=69 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>RxD</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=51 VALIGN=BOTTOM SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=74 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>RxD</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=49 VALIGN=BOTTOM SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD WIDTH=69 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>TxD</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD WIDTH=51 VALIGN=BOTTOM SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=74 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>SG</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD WIDTH=49 VALIGN=BOTTOM SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD WIDTH=69 VALIGN=TOP>
+				<P ALIGN=CENTER><FONT SIZE=2>SG</FONT></P>
+			</TD>
+			<TD WIDTH=50 VALIGN=BOTTOM SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD WIDTH=51 VALIGN=BOTTOM SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Wykonany w
+ten spos&oacute;b kabel może r&oacute;wnież posłużyć do połączenia
+dw&oacute;ch komputer&oacute;w PC. Zajmiemy się jedynie komunikacją
+wykonaną przy pomocy tego najprostszego połączenia. Dalej zamiast
+port RS232 numer jeden będę używał COM1 COM2 itd. To wszystko w
+temacie sprzęt, połączyliśmy dwa komputery i możemy pisać program
+kt&oacute;ry prześle dane.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Podstawowa
+informacja na temat urządzenia to adres jego portu. W przypadku
+większości są to urządzenia bardziej skomplikowane i posiadają
+większą ilość port&oacute;w ale &ldquo;tabliczką rejestracyjną&rdquo;
+jest ten pierwszy. Drugim imieniem urządzenia jest numer przerwania
+na kt&oacute;re będzie zgłaszać żądania obsługi.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>W dos
+standardowo przypisane adresy, linie sprzętowego przerwania oraz
+wektory przerwań programowych do portu przedstawiają się następująco:</FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=448 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=101>
+	<COL WIDTH=104>
+	<COL WIDTH=103>
+	<COL WIDTH=106>
+	<THEAD>
+		<TR>
+			<TH WIDTH=101>
+				<P ALIGN=CENTER><FONT SIZE=2>Nazwa portu</FONT></P>
+			</TH>
+			<TH WIDTH=104>
+				<P ALIGN=CENTER><FONT SIZE=2>adres</FONT></P>
+			</TH>
+			<TH WIDTH=103>
+				<P ALIGN=CENTER><FONT SIZE=2>przerwanie sprzętowe</FONT></P>
+			</TH>
+			<TH WIDTH=106>
+				<P ALIGN=CENTER><FONT SIZE=2>wektor przerwania</FONT></P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR>
+			<TD WIDTH=101>
+				<P ALIGN=CENTER><FONT SIZE=2>COM1</FONT></P>
+			</TD>
+			<TD WIDTH=104>
+				<P ALIGN=CENTER><FONT SIZE=2>0x3f8</FONT></P>
+			</TD>
+			<TD WIDTH=103 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD WIDTH=106>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0c</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=101>
+				<P ALIGN=CENTER><FONT SIZE=2>COM2</FONT></P>
+			</TD>
+			<TD WIDTH=104>
+				<P ALIGN=CENTER><FONT SIZE=2>0x2f8</FONT></P>
+			</TD>
+			<TD WIDTH=103 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=106>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0b</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=101>
+				<P ALIGN=CENTER><FONT SIZE=2>COM3</FONT></P>
+			</TD>
+			<TD WIDTH=104>
+				<P ALIGN=CENTER><FONT SIZE=2>0x3e8</FONT></P>
+			</TD>
+			<TD WIDTH=103 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD WIDTH=106>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0c</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=101>
+				<P ALIGN=CENTER><FONT SIZE=2>COM4</FONT></P>
+			</TD>
+			<TD WIDTH=104>
+				<P ALIGN=CENTER><FONT SIZE=2>0x2e8</FONT></P>
+			</TD>
+			<TD WIDTH=103 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD WIDTH=106>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0b</FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pierwsza
+niejasność jaką mamy to przerwania. Są cztery porty i dwa przerwania.
+Tego faktu nie możemy przeoczyć podczas tworzenia programu obsługi
+portu, kt&oacute;ry korzysta z przerwań. Na razie nadmienię jedynie
+iż należy rozpoznać port, kt&oacute;ry zgłosił przerwanie przez test
+odpowiedniego rejestru. Tym tematem zajmiemy się w dalszej części. W
+przypadku standardowego przypisania adres&oacute;w, jak w tabeli
+możemy zdefiniować stałe liczbowe kt&oacute;re możemy użyć w
+programie do adresowania portu:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>#define COM1
+0x03f8</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>#define COM2
+0x02f8</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>#define COM3
+0x03e8</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>#define COM4
+0x02e8</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Chociaż jest
+rzeczą mało prawdopodobną, porty mogą mieć inne adresy. W takim
+przypadku powyższy zapis będzie błędny i w poszukiwaniu adres&oacute;w
+musimy pogrzebać w pamięci operacyjnej komputera. W trakcie startu,
+BIOS zanim odszuka na dysku system operacyjny i przekaże mu
+sterowanie dokonuje testu sprzętu (płyta, RAM, DMA). W&oacute;wczas
+odnajduje porty szeregowe i w pamięci operacyjnej począwszy od adresu
+0x0040:0x0000 do adresu 0x0040:0x0007 wpisuje adresy znalezionych
+port&oacute;w. Wartość 0x00 oznacza brak portu. Dla dw&oacute;ch
+port&oacute;w obszar ten może wyglądać tak:</FONT></P>
+<P ALIGN=CENTER STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=648 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0>
+	<COL WIDTH=143>
+	<COL WIDTH=119>
+	<COL WIDTH=113>
+	<COL WIDTH=123>
+	<COL WIDTH=108>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=143>
+				<P ALIGN=CENTER><FONT SIZE=2>Nr portu</FONT></P>
+			</TH>
+			<TH WIDTH=119>
+				<P ALIGN=CENTER><FONT SIZE=2>COM1</FONT></P>
+			</TH>
+			<TH WIDTH=113>
+				<P ALIGN=CENTER><FONT SIZE=2>COM2</FONT></P>
+			</TH>
+			<TH WIDTH=123>
+				<P ALIGN=CENTER><FONT SIZE=2>COM3</FONT></P>
+			</TH>
+			<TH WIDTH=108>
+				<P ALIGN=CENTER><FONT SIZE=2>COM4</FONT></P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TD WIDTH=143>
+				<P ALIGN=CENTER><FONT SIZE=2>Adres RAM</FONT></P>
+			</TD>
+			<TD WIDTH=119>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0040:0x0000</FONT></P>
+			</TD>
+			<TD WIDTH=113>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0040:0x0002</FONT></P>
+			</TD>
+			<TD WIDTH=123>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0040:0x004</FONT></P>
+			</TD>
+			<TD WIDTH=108>
+				<P ALIGN=CENTER><FONT SIZE=2>0x0040:0x0006</FONT></P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=143>
+				<P ALIGN=CENTER><FONT SIZE=2>Adres portu</FONT></P>
+			</TD>
+			<TD WIDTH=119>
+				<P ALIGN=CENTER><FONT SIZE=2>0xf8,0x03</FONT></P>
+			</TD>
+			<TD WIDTH=113>
+				<P ALIGN=CENTER><FONT SIZE=2>0xf8,0x02</FONT></P>
+			</TD>
+			<TD WIDTH=123>
+				<P ALIGN=CENTER><FONT SIZE=2>0x00,0x00</FONT></P>
+			</TD>
+			<TD WIDTH=108>
+				<P ALIGN=CENTER><FONT SIZE=2>0x00,0x00</FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Ponieważ
+interesuje nas adres czterech port&oacute;w umieszczonych w pamięci w
+zwartej strukturze można posłużyć się tablicą zawierającą liczby
+unsigned int. Podczas deklaracji należy pamiętać, że nie jest to
+zwykła tablica, dla kt&oacute;rej kompilator przydziela pamięć w
+dowolnie wybranym miejscu przez system. Tablica musi obejmować obszar
+zawierający interesujące nas dane.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Oto
+konstrukcja, kt&oacute;ra spełni powyższy warunek:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>const
+unsigned int far com_adr=(unsigned int far)0x00400000L;</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Wskaźnik
+com_adr dotyczy tablicy, kt&oacute;rej pierwszy element, o indeksie
+0, znajduje się pod adresem 0x00400000L. Odwoływać się do jej
+element&oacute;w można jak do zwykłej tablicy :</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>int i,
+element;</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>element=com_adr[i];</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Deklarując
+tablicę nie podano jej rozmiaru wystarczy pamiętać jakiego obszaru
+dotyczy - możemy znaleźć maksymalnie cztery porty. W definicji
+wskaźnika com_adr użyto słowa kluczowego &quot;const&quot; w trosce
+bezpieczeństwo danych. Dzięki jego użyciu niemożliwe jest zmiana
+obszaru do kt&oacute;rego mamy dostęp za pośrednictwem wskaźnika
+com_adr. Nigdy nie wiadomo czy pięćset linijek dalej i tydzień
+p&oacute;źniej osoba z tobą wsp&oacute;łpracująca nie zechce zrobić
+czegoś takiego com_adr[3]=0x222. Dzięki słowu kluczowemu &quot;const&quot;
+zobaczy błąd kompilacji. Jeżeli zdecydujemy się na metodę ze
+wskaźnikiem do pamięci, wcześniej zdefiniowane stałe COM... zostaną
+zastąpione przez com... .</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>//tablica
+com_adr jest już zdefiniowana</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>const
+unsigned int com1=com_adr[0];</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>const
+unsigned int com2=com_adr[1];</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>const
+unsigned int com3=com_adr[2];</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>const
+unsigned int com4=com_adr[3];</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Wyb&oacute;r
+pomiędzy tą metodą otrzymywania adres&oacute;w a stałymi COM...
+będzie zależał od sytuacji. Ponieważ adresy port&oacute;w są raczej
+nie zmienne proponuję stałe, przede wszystkim ze względu na szybkość
+określania adresu w kodzie programu. Przedstawiony przykład
+pobierania adresu RS-a z pamięci wykorzystamy podczas otwierania
+portu w celu sprawdzenia czy urządzenie istnieje. Jeżeli np.
+com_adr[2]==0 to znaczy że RS o tym adresie nie istnieje.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Wspomniałem
+że urządzenia dysponują większą ilością port&oacute;w (dalej zwanych
+r&oacute;wnież rejestrami ). Tak jest i w tym przypadku. Odpowiednie
+stałe opisujące ich adresy zdefiniowane są w pliku rs232_dos.h. By
+ułatwić korzystanie z tych port&oacute;w (rejestr&oacute;w) wszystkie
+potrzebne informacje zebrałem w tabeli:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=823 BORDER=1 BORDERCOLOR="#000000" CELLPADDING=4 CELLSPACING=0 STYLE="page-break-inside: auto">
+	<COL WIDTH=74>
+	<COL WIDTH=81>
+	<COL WIDTH=45>
+	<COL WIDTH=42>
+	<COL WIDTH=40>
+	<COL WIDTH=0>
+	<COL WIDTH=491>
+	<THEAD>
+		<TR>
+			<TH WIDTH=74>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Nazwa portu</FONT></P>
+			</TH>
+			<TH WIDTH=81>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>przesunięcie</FONT></P>
+			</TH>
+			<TH COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Opis rejestr&oacute;w portu
+				komunikacyjnego RS232</FONT></P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR>
+			<TD WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>TBR</B> </FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>bufor nadajnika</FONT></P>
+			</TD>
+			<TD WIDTH=81 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD ROWSPAN=2 COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Powyższe rejestry służą do kontaktu
+				z rejestrami wejścia wyjścia portu RS232. Chociaż są to dwa r&oacute;żne
+				bufory THR nadawczy i RBR - bufor odbiorczy, dostęp do nich
+				odbywa się poprzez ten sam adres w przestrzeni adresowej port&oacute;w
+				wejścia wyjścia procesora. Rozr&oacute;żnienie w obrębie portu
+				RS232 odbywa się przez aktywację r&oacute;żnych sygnał&oacute;w
+				podczas odczytu i zapisu WR i RD. Można używać stałej COM...
+				zamiast rozgraniczać na THR i RBR.</FONT></P>
+				<P ALIGN=JUSTIFY><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>RBR</B></FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>bufor odbiornika</FONT></P>
+			</TD>
+			<TD WIDTH=81 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>DLL</B></FONT></P>
+			</TD>
+			<TD WIDTH=81 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD ROWSPAN=2 COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>DLL i DLH mniej i bardziej znaczący
+				bajt dzielnika prędkości dostępne gdy bit nr 7 rejestru LCR ma
+				wartość 1. Do tych rejestr&oacute;w wpisujemy mniej a następnie
+				bardziej znaczący bit wartości, przez kt&oacute;rą podzielona
+				liczba 115200 da prędkość przesyłania danych. Rejestry te służą
+				r&oacute;wnież do odczytu aktualnie ustawionej prędkości. </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>DLH</B></FONT></P>
+			</TD>
+			<TD WIDTH=81 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=7 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>IER </B></FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr aktywacji przerwań</FONT></P>
+			</TD>
+			<TD ROWSPAN=7 WIDTH=81 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr określający kiedy port ma
+				generować przerwanie. Posługujemy się tym rejestrem w celu
+				umożliwienia reagowania na zaistniałe zdarzenia bez konieczności
+				ciągłego testowania stanu rejestru wejściowego. Aby włączyć opcję
+				należy ustawić właściwy bit:</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER STYLE="text-decoration: none"><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY STYLE="text-decoration: none"><FONT SIZE=2><I><B>Znaczenie
+				bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2>7 do 4</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>nieużywane</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>za każdym razem kiedy kt&oacute;rakolwiek
+				z linii zewnętrznych kontroli modemu zmieni sw&oacute;j stan. Są
+				to linie DSR, CTS, DCD, RI.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>w przypadku błędu parzystości
+				powstałego podczas odbioru bitu lub wygenerowaniu sygnału BREAK -
+				oznacza przerwanie transmisji przez nadajnik.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>po każdym wysłaniu znaku do
+				rejestru przesuwnego, oznacza to zwolnienie rejestru wejściowego
+				i możliwość wpisania tam nowej wartości</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>po każdym otrzymaniu znaku przez
+				bufor odbierający, należy odczytać wartość z rejestru wejściowego
+				by umożliwić rejestrowi przesuwnemu odebranie nowej wartości.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=8 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>IIR </B></FONT>
+				</P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr identyfikacji przerwań</FONT></P>
+			</TD>
+			<TD ROWSPAN=8 WIDTH=81 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr identyfikacji przerwania:
+				bity 1 i 2. Zawiera informację o rodzaju przerwania zgłoszonego
+				przez port. Rejestr ten jest konsekwencją rejestru IER. Tam
+				ustawialiśmy, kt&oacute;re sytuacje mają powodować zgłoszenie
+				przerwania, w tym rejestrze sprawdzamy jaka sytuacja wystąpiła
+				skoro port wygenerować przerwanie.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2><I><B>Znaczenie bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>jeżeli wartość bitu wynosi 0 to
+				nastąpiło zgłoszenie przerwania. Odczytanie portu powoduje
+				ustawienie tego bitu w stan 1 czyli &ldquo;nie zgłoszono
+				przerwania&rdquo;. W przypadku wsp&oacute;łpracy dw&oacute;ch
+				port&oacute;w RS232 na jednym przerwaniu należy sprawdzić czy w
+				&quot;sąsiednim&quot; porcie ten sam bit nie sygnalizuje
+				przerwania.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2>2           1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Grupa bit&oacute;w nr 2 i 1</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>wygenerowano przerwanie ze względu
+				na zmianę linii DSR, CTS, DCD,RI.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>pusty rejestr THR wysłano daną.
+				Rejestr gotowy na przyjęcie nowej.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>pełny rejestr RBR odebrano znak.
+				Należy opr&oacute;żnić rejestr by przygotować miejsce na nową
+				liczbę</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>przerwanie zgłoszono w wyniku
+				stwierdzenia błędu.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=19 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>LCR</B></FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr parametr&oacute;w transmisji</FONT></P>
+			</TD>
+			<TD ROWSPAN=19 WIDTH=81 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr konfiguracji portu
+				szeregowego. Określa format jednostki informacyjnej wysyłanej
+				przez port.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2><I><B>Znaczenie bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>jeśli ma wartość 1 to do rejestr&oacute;w
+				DLL i DLH można wpisać taką liczbę, przez kt&oacute;rą podzielona
+				liczba 115200 da prędkość transmisji</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="6" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>po jego ustawieniu w stan 1 wysłany
+				zostaje sygnał BREAK i transmisja zostaje przerwana.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=3 COLSPAN=2 WIDTH=94 SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>wymuszenie stanu bitu kontrolnego</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=40 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=2 WIDTH=492>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>brak wymuszenia - bit kontroli
+				parzystości zostanie określony przez UART</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=40 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=2 WIDTH=492>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>jeżeli LCR.4==0 i LCR.3==1 to stan
+				bitu zawsze 1.</FONT></P>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Jeżeli LCR.4==1 i LCR.3==1 to stan
+				bitu zawsze 0.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2>4           3</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Grupa bit&oacute;w nr 4 i 3
+				definiująca typ kontroli parzystości</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45>
+				<P ALIGN=CENTER><FONT SIZE=2>X</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Brak kontroli parzystości</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Nieparzystość. Bit kontrolny
+				zostanie ustawiony na jeden w przypadku parzystej ilości jedynek
+				na polu danych, jeżeli ilość jedynek jest nieparzysta bit
+				ustawiony jest na zero.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Parzystość. Bit kontrolny ustawiony
+				jest na jeden jeżeli w polu danych występuje nieparzysta liczba
+				jedynek, jeżeli liczba jedynek jest parzysta wartość bitu
+				kontrolnego ustawiona jest na zero.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=3 COLSPAN=2 WIDTH=94 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>kontroluje liczbę bit&oacute;w
+				stopu</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=491>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>1 bit stopu</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=491>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>2 bity stopu</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2>1           0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Grupa bit&oacute;w nr 1 i 0 :
+				definiują liczbę bit&oacute;w danych w transmitowanym &ldquo;bajcie&rdquo;</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>5 bit&oacute;w danych </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>6 bit&oacute;w danych </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>7 bit&oacute;w danych </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD WIDTH=45 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD WIDTH=42 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>8 bit&oacute;w danych </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=8 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>MCR</B></FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr sterowania modemem</FONT></P>
+			</TD>
+			<TD ROWSPAN=8 WIDTH=81>
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr kontroli modemu - pozwala
+				ustawić stan sygnał&oacute;w DTR RTS i włączyć przerwania</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2><I><B>Znaczenie bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2>7 do 5</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>nieużywane</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>bit diagnostyczny powinien być
+				ustawiony na 0. Brak dokładniejszych informacji na ten temat.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>jeżeli ustawiony to UART może
+				wysyłać przerwania</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>nie wykorzystywany</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>ustawienie stan linii RTS </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>ustawienie stan linii DTR </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=10 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>LSR</B></FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr stanu transmisji</FONT></P>
+			</TD>
+			<TD ROWSPAN=10 WIDTH=81>
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr kontroli portu, informuje o
+				zaistnieniu poniższych zdarzeń. Odczytanie rejestru kasuje bity
+				określające rodzaj błędu i bit sygnalizujący wykrycie sygnału
+				BREAK</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2><I><B>Znaczenie bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>nie używany</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="6" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>UART wysłał zawartość bufora
+				przesuwnego</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>zawartość THR została przesłana do
+				buforu przesuwnego i można wysłać do THR nową daną</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>pojawił się sygnał BRAKE</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>odebrana ilość bit&oacute;w nie
+				zgodna z uzgodnionym formatem</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>wystąpił błąd parzystości</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>wystąpiło zamazanie poprzedniej
+				wartości rejestru RBR przez nową daną</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>port odebrał znak i jest on do
+				odczytania w rejestrze RBR bit jest automatycznie zerowany
+				podczas odczytu RBR</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD ROWSPAN=10 WIDTH=74>
+				<P ALIGN=CENTER><FONT SIZE=2><B>MSR</B></FONT></P>
+				<P ALIGN=CENTER><FONT SIZE=2>rejestr stanu modemu</FONT></P>
+			</TD>
+			<TD ROWSPAN=10 WIDTH=81>
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD COLSPAN=5 WIDTH=643>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Rejestr kontroli stanu modemu.</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94>
+				<P ALIGN=CENTER><FONT SIZE=2><I><B>bity</B></I></FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2><I><B>Znaczenie bitu</B></I></FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="7" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>7</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>stan linii DCD </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="6" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>6</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>stan linii RI-dzwonek </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="5" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>5</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>stan linii DSR </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="4" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>4</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>stan linii CTS </FONT>
+				</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="3" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>3</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>zmiana DCD od ostatniego odczytu
+				tego rejestru</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="2" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>2</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>zmiana RI od ostatniego odczytu
+				tego rejestru</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="1" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>1</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>zmiana DSR od ostatniego odczytu
+				tego rejestru</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=2 WIDTH=94 SDVAL="0" SDNUM="1045;">
+				<P ALIGN=CENTER><FONT SIZE=2>0</FONT></P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=540>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>zmiana CTS od ostatniego odczytu
+				tego rejestru</FONT></P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=7 WIDTH=813>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Objaśnienie:</FONT></P>
+				<P ALIGN=JUSTIFY><FONT SIZE=2>Kolumna &ldquo;przesunięcie&rdquo;
+				zawiera adresy rejestr&oacute;w względem adresu bazowego portu
+				RS232 oznaczonego stałymi COM.... Odwołanie do rejestru odbywa
+				się przez sumowanie adresu bazowego i przesunięcia odpowiedniego
+				temu rejestrowi np.: COM1+LSR.</FONT></P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pisząc
+bibliotekę staramy się zrobić to tak by raz napisany kod m&oacute;gł
+być używany wielokrotnie czyli kod biblioteki stworzony dla jednego
+programu będzie pracował w innym bez żadnych zmian, wykonując te same
+czynności w taki sam spos&oacute;b i co najważniejsze nie będzie
+powodował awarii. Z drugiej strony programy w kt&oacute;rych używamy
+danej biblioteki mogą działać co najwyżej lepiej gdy w wyniku prac
+rozwojowych nad biblioteką zostaną zmienione ciała funkcji.
+Stworzyłem klasę CRS232 wyposażoną w metody zawierające wszystkie
+operacje na porcie. Na jej przykładzie om&oacute;wię niezbędne kroki
+do nawiązania łączności z wykorzystaniem RS. Do pracy z przerwaniami
+potrzebna jest pewna znajomość układu 8259 zarządzającego 
+przerwaniami. Przekażę minimum informacji przy opisywaniu tego
+zagadnienia w porcie RS232.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Przygotowanie
+portu do pracy</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<OL>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Znajdź
+	port - sprawdź czy jest do użycia</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>O
+	adresowaniu portu już napisałem. Będziemy korzystać ze stałych a
+	istnienie portu sprawdzimy w odpowiednim miejscu RAM. Klasa CRS232
+	pozwala na kontrolowanie ponownego dostępu do portu. W dos
+	wykorzystuje do tego zmienne bool comX_otwarty, w win zajmuje się
+	tym jądro systemu.</FONT></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Ustaw
+	procedurę obsługi przerwania zgłaszanego przez ten port</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Dos pozwala
+	podstawić własną odpowiednio skonstruowaną funkcję do wykonywania
+	przerwania podpiętego pod wskazany wektor. W przypadku portu RS232
+	funkcja musi odpowiadać na r&oacute;żne zdarzenia zachodzące podczas
+	pracy. Budową tej funkcji zajmę się dalej w tym punkcie pokazuję jak
+	ją podpiąć:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Przed
+	funkcją main() definiujemy funkcję obsługi przerwania:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">void
+	interrupt far irq1(...)</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">{</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">//
+	...</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">//
+	tu wszystkie operacie przewidziane na wypadek zgłoszenia przerwania
+	przez port</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">//
+	...</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(CTRL8259_ICR,EOI);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">}</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Ponieważ
+	tego wymagają zasady musimy zapamiętać adres poprzedniej procedury
+	obsługującej przechwytywane przerwanie. W przypadku RS232 tylko po
+	to by po zamknięciu portu oddać ją systemowi. W innych przerwaniach
+	może być potrzeba wykonywania r&oacute;wnież starej procedury.
+	Zmienna przeznaczona do przechowywania wskaźnika ma być
+	zadeklarowana tak:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">void
+	interrupt far (*old_irq1)(...);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Ciąg
+	poleceń konieczny do podmiany procedur wygląda tak:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">old_irq1=getvect(0x0c);
+	// 0x0c dla port&oacute;w 1 i 3 a dla port&oacute;w 2 i 4 0x0b</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">setvect(0x0c,irq1);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Od tej pory
+	port przez kt&oacute;ry będziemy przesyłać dane wywoła nową
+	procedurę : irq(...). </FONT>
+	</P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Gdy pracują
+	dwa porty na jednym przerwaniu : COM1 z COM3 i COM2 z COM4 najlepiej
+	będzie utworzyć osobne procedury dla każdego portu ale wywołać je z
+	procedury zbiorczej:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">void
+	interrupt far irq13(...)</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">{</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	 if(!(inportb(COM1+IIR)&amp;0x01)){</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	   irq1(); </CODE></FONT>
+	</P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	 }</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	 if(!(inportb(COM3+IIR)&amp;0x01)){</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	   irq3();</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	 }</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+	 outportb(CTRL8259_ICR,EOI);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>}</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Procedura
+	sporządzona dla drugiej pary port&oacute;w r&oacute;żnić się będzie
+	tylko indeksami procedur. Wywołanie funkcji
+	outportb(CTRL8259_ICR,EOI); Powinno nastąpić po obsłużeniu
+	przerwania. Gdy pracuje procedura irq13 to wystarczy umieścić ją
+	tylko w tej procedurze. Skoro użyliśmy jednej procedury do obsługi
+	dw&oacute;ch przerwań to oczywiste jest że trzeba rozpoznać kt&oacute;ry
+	port zgłosił to przerwanie. Port kt&oacute;ry zgłosił przerwanie
+	zeruje bit nr 0 w rejestrze IIR. O konieczności wykonania procedury
+	decyduje test if(!(inportb(adres_bazowy+IIR)&amp;0x01)). Jeżeli bit
+	IIR.0 == 0 to ten port żąda obsługi.</FONT></P>
+</OL>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<OL>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>ustaw
+	prędkość transmisji</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Podstawowy
+	parametr pracy portu RS232. Ustawiany przy pomocy rejestr&oacute;w
+	DLL i DLH pokrywających się z rejestrami TBR/RBR i IER aby uaktywnić
+	rejestry DLL i DLH należy ustawić bit LCR.7 po zakończeniu operacji
+	zerujemy LCR.7.</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+LCR,inportb(port+LCR)|0x80);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+DLL,(par
+	&amp; 0x00FF));</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+DLH,
+	((par &gt;&gt; 8) &amp; 0x00FF));</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+LCR,inportb(port+LCR)&amp;
+	~0x80);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>ustaw :
+	bity danych, parzystość, bity stopu</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Te trzy
+	punkty ciężko będzie zrealizować osobno bo omawiane parametry
+	ustawiane są przez zmianę bit&oacute;w jednego rejestru. Zmieniając
+	jeden parametr transmisji nie możemy zniszczyć pozostałych.
+	Proponuję zastosować maski bit&oacute;w odpowiadających parametrowi
+	i wykonywać operacje bitowe lub na jego obecnej wartości:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_BRAK_KONTROLI
+	0x00</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_KONTR_NIE_PRZYSTOSCI
+	0x08</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_KONTR_PRZYSTOSCI
+	0x18</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_M
+	0xE7</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_5
+	0x00</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_6
+	0x01</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_7
+	0x02</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_8
+	0x03</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_M
+	0xFC</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_STOPU_1
+	0x00</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_STOPU_2
+	0x04</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_STOPU_M
+	0xFB</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Przy pomocy
+	tych stałych ustawienie parametru np. kontroli parzystości można
+	zrealizować tak:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+LCR,((inportb(port+LCR)&amp;BITY_STOPU_M)
+	| BITY_STOPU_1);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+LCR,((inportb(port+LCR)&amp;PARZYSTOSC_M)
+	| PARZYSTOSC_BRAK_KONTROLI);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+LCR,((inportb(port+LCR)&amp;BITY_DANYCH_M)
+	| BITY_DANYCH_8);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>ustaw
+	bity odpowiadający za zgłaszanie przerwania przez port</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Jako
+	włącznik zgłaszania przerwania wykorzystywany jest MCR.4. Ustawienie
+	tego bitu włącza zgłaszanie przerwań przez port. Gdy MCR.3==0 port
+	nie zgłasza przerwań nie zależnie od innych ustawień. Po włączeniu
+	przerwania należy wykonać (zaleca to literatura) poniższe operacje:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>odczyt w
+	celu skasowania znacznik&oacute;w błędu</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">inportb(port+LSR);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>odczyt w
+	celu skasowania bitu LSR.0</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">inportb(port+RBR);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>ustaw
+	bity odpowiadające za informowanie interesujących nas zdarzeń w
+	porcie</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Aby wybrać
+	zdarzenia po kt&oacute;rych zgłaszane będzie przerwanie posługujemy
+	się rejestrem IER. Zdarzenia na kt&oacute;re może reagować
+	przerwanie opisane są w tabeli a do ich rozr&oacute;żnienia w kodzie
+	posłużymy się stałymi zdefiniowanymi niżej.</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">IER_ODEBRANE
+	0x01</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">IER_NADAWANE
+	0x02</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">IER_PARZYSTOSC_OR_BREAK
+	0x04</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">IER_ZMIANA_NA_LINIACH
+	0x08</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Aby włączyć
+	zgłaszanie przerwania np. po odebraniu danej i wysłaniu danej
+	wykonujemy to:</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outportb(port+IER,IER_ODEBRANE
+	| IER_NADANE);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">inportb(port+LSR);
+	// odczyt w celu skasowania znacznik&oacute;w błędu</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">inportb(port+RBR);
+	// odczyt w celu skasowania bitu LSR.0</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>W
+	przerwaniu rozpoznanie zdarzenia następuje przez odczytanie rejestru
+	IIR i sprawdzenie zdarzenia przez kontrolę odpowiednich bit&oacute;w.</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>zeruj
+	bit sterujący generowaniem przerwania dla tego portu w kontrolerze
+	PIC.</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Ten układ
+	odpowiada za przesyłanie sygnał&oacute;w wszystkich o przerwaniach.
+	Tam jest umieszczony gł&oacute;wny wyłącznik każdego przerwania. Na
+	samym końcu konfigurowania gdy wszystkie parametry portu zostały
+	wpisane do rejestr&oacute;w należy w tym przerwaniu włączyć
+	zgłaszanie przerwań. Rejestr zawierający bity kontrolne ma adres
+	0x21. A bity to 4 dla COM1 i COM3 i bit 3 dla COM2 i COM4.</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PRZERWANIA_COM13
+	0xEF</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PRZERWANIA_COM24
+	0xE7</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">CTRL8259_IMR
+	0x21</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Włączanie
+	przerwań:</FONT></P>
+</OL>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     outport(CTRL8259_IMR,inport(CTRL8259_IMR)&amp;PRZERWANIA_COM13);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     outport(CTRL8259_IMR,inport(CTRL8259_IMR)&amp;PRZERWANIA_COM24);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Zamknięcie
+portu </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<OL>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Wyłącz
+	generowanie przerwania przez PIC</FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outport(CTRL8259_IMR,inport(CTRL8259_IMR)|
+	~PRZERWANIA_COM13);</CODE></FONT></P>
+	<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">outport(CTRL8259_IMR,inport(CTRL8259_IMR)|
+	~PRZERWANIA_COM24);</CODE></FONT></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Podmień
+	procedury obsługi przerwań. Podmiana procedur musi odbyć się z
+	zapewnieniem możliwości pracy przerwania obsługującego ewentualnie
+	pracujące drugie przerwanie.</FONT></P>
+	<LI><P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Można
+	przywr&oacute;cić stan wszystkich rejestr&oacute;w portu z przed
+	przejęcia nad nim kontroli. Trzeba by w tym celu wszystkie je
+	zapamiętać w osobnych zmiennych. Moim zdaniem nie jest to konieczne.
+	Zamykanie portu można zakończyć na tych czynnościach.</FONT></P>
+</OL>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Teraz parę
+zdań o czynnościach wykonywanych przez kod transmitujący dane.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>CRS232 jest
+przykładem klasy dającej swobodę użycia znacznej części kodu na
+r&oacute;żnych platformach. Jednocześnie przykładem jak odmienności
+systemu mogą pokomplikować pisanie kodu. Spełnienie podstawowego
+warunku by pod win i dos klasa ta zachowywała się identycznie
+sprawiło że pod jednym jak i pod drugim systemem nie można było
+zrobić wszystkiego na co dany system pozwala. Dos pozwala na lepszy
+kontakt ze sprzętem a win udostępnia mechanizmy o wiele bardziej
+zaawansowane - nowocześniejsze. Największą &ldquo;stratą&rdquo; jest
+nie używanie przez CRS232 wątk&oacute;w w win. Wydaje mi się że
+programowanie wielowątkowe niesie za sobą problemy z kt&oacute;rymi
+większość użytkownik&oacute;w nie chce mieć do czynienia i nie będzie
+narzekać na brak tej możliwości. Nic nie stoi na przeszkodzie by
+rozbudować CRS232 w kolejnych wersjach - rezygnując z kompatybilności
+z dosem, raczej nie wielka strata. Kodu wykonywanego przez CRS232 dla
+win nie będę omawiał. Programowanie wsp&oacute;łpracy z tym systemem
+jest dość niewdzięczne, pochłania mn&oacute;stwo czasu, zwłaszcza na
+&ldquo;parpanie&rdquo; w dokumentacji. Opis funkcji i metod
+komunikowania się portami szeregowymi znajduje się na stronach EP
+wobec czego nie będę o tym pisać. </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Programowanie
+pod dosem om&oacute;wię poruszając parę ważniejszych kwestii.
+Największym problemem jest poprawne obsługiwanie danych
+przychodzących do rejestru wejściowego. Przerwanie załatwia nam
+możliwość pobrania każdego nadesłanego bajtu z rejestru wejściowego i
+wpisanie do bufora. Przetworzenie danych odbywa się w programie
+gł&oacute;wnym a ten pobiera dane gdy ... ma na to ochotę. Dane muszą
+więc czekać na ich pobranie w buforze. Zapisanie danej do bufora
+zmniejsza jego wolny obszar co może doprowadzić do jego
+przepełnienia. Do pewnego stopnia powiększanie jego rozmiaru
+rozwiązuje problem ale tylko gdy przepełnianie następuje ze względu
+na rzadkie odczytywanie danych a nie na powolność algorytmu
+przetwarzającego lub sprzętu. Gdy mamy do czynienia z tym pierwszym
+trzeba pomyśleć o poprawieniu algorytm&oacute;w a jeżeli są poprawne
+po prostu rozbudować sprzęt. Bufor do kt&oacute;rego zapisywane są
+dane jest jednocześnie źr&oacute;dłem danych dla programu. W takich
+zastosowaniach dobrze spisuje się bufor okrężny i jest najprostszym
+rozwiązaniem. Bufor okrężny nie ma końca (jako tablica danych ma ale
+przez odpowiednie operowanie indeksami zachowuje się jak by go nie
+miał). Podczas zapisu indeks przesuwany jest na następną pozycję. Po
+obejściu w koło całego bufora - dotarciu do końca tablicy - indeks
+ustawiany jest na początek bufora zamykając &ldquo;okrążenie&rdquo;
+niszczy poprzednio zapisaną daną (gdy nie była odczytana). Jeżeli za
+zapisem będzie podążał odczyt i pobierał wszystkie dane zawracając na
+końcu tablicy otrzymamy bufor okrężny. Jeżeli odczyt zawiedzie np. ze
+względu na zbyt powolne odbieranie danych indeks zapisu dogoni indeks
+odczytu i zacznie zamazywać dane nie odczytane. Klasa CRS232 w takiej
+sytuacji nie przerywa pracy ustawia jedynie zmienną we_pelny=size_m.
+Sprawdzenie czy bufor nie został przepełniony należy wykonać
+samodzielnie komunikatem DAJ_WSKAZNIK_WYPELNIENIA jeżeli jest ok
+ioctl() zwraca 0 w przeciwnym wypadku size_m. Bufor wejściowy uznany
+jest za przepełniony gdy po wykonaniu odczytu z rejestru wejściowego
+i zwiększeniu indeksu zapisu zr&oacute;wnuje się on z indeksem
+odczytu. Bufor wyjściowy trudno przepełnić ponieważ metoda write()
+nie zapisze żadnej danej gdy nie ma na nią miejsca. Do wykonania jest
+za to inna czynność. Gdy przed wykonaniem metody write() port
+opr&oacute;żnił bufor wyjściowy i w związku z nie wysłaniem danej nie
+została zainicjowana kolejna transmisja, przerwanie nie zostanie już
+zgłoszone. Należy wznowić transmisję wykonując wpis do rejestru
+wyjściowego. O opuszczeniu komputera przez ostatni bajt można
+dowiedzieć się tu : LSR.5 . Klasa CRS232 wykorzystuje do tego celu
+zmienną wy_pelny przewidzianą do stałej kontroli wypełnienia bufora
+(w procentach) w najprostszej wersji przyjmuje wartość wy_rozmiar gdy
+coś jest w buforze lub wartość 0 gdy zakończono transmisję.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Instrukcja
+obsługi:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Tworzymy
+statyczny obiekt klasy CRS232;</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">CRS232
+com;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Otwieramy
+port:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">if(ERR_NODEV==com.open(COM2)){</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ cout&lt;&lt;&quot;error CRS232::open()&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ return 0; // lub w inny spos&oacute;b obsługujemy błąd</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">}</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Coś tam
+odczytujemy :</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">com.read((par_t*)bufor,ile);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>i
+ewentualnie zapisujemy</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">com.write((par_t*)bufor,ile);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Sterowanie
+klasą odbywa się zgodnie z wcześniejszymi złożeniami poprzez metodę
+ioctl()</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Komenda </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">USTAW_PREDKOSC</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Parametry:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_2400</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_4800</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_9600</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_19200</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_28800</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_38400</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_57600</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PREDKOSC_115200</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Komenda:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">USTAW_PARZYSTOSC</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Parametry:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_BRAK_KONTROLI</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_KONTR_NIE_PRZYSTOSCI</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">PARZYSTOSC_KONTR_PRZYSTOSCI</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Komenda:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">USTAW_BITY_DANYCH</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Parametry:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_5</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_6</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_7</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_DANYCH_8</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">Komenda</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>USTAW_BITY_STOPU</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Parametry:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_STOPU_1</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">BITY_STOPU_2</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Komendy </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">USTAW_WY_BUF</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pozwala
+zmienić rozmiar rozmiar bufora wyjściowego. Nowy rozmiar podawany
+jest jako parametr</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">USTAW_WE_BUF</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pozwala
+zmienić rozmiar rozmiar bufora wejściowego. Nowy rozmiar podawany
+jest jako parametr</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">CZYSC_BUFORY</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Opr&oacute;żnia
+oba bufory. Brak parametru</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">WYSLIJ_ZNAK</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Pozwala
+wysyłać pojedyncze znaki bez wstawiania ich do bufora. Znak jest
+wpisywany do rejestru wyjściowego ale ioctl() odczeka aż znak kt&oacute;rego
+transmisja jest w trakcie opuści komputer. Transmitowany znak
+podajemy jako parametr.</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">DAJ_WSKAZNIK_WYPELNIENIA</CODE>
+Dotyczy bufora wejściowego</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">DAJ_WSKAZNIK_OPROZNIENIA</CODE>
+Dotyczy bufora wyjściowego</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Komendy
+przewidziane do zwracania wypełnienia odpowiednich bufor&oacute;w w
+procentach w najprostszym trybie (obecnym) zwracają 0 gdy bufory są
+puste. Przepełnienie bufora wejściowego sygnalizowane jest wartością
+size_m. Bufor wyjściowy zwraca sw&oacute;j rozmiar gdy coś w nim
+jest. Inaczej, dla tej wersji klasy, gdy bufory są puste zwracają 0 a
+gdy coś w nich jest zwracają wartość r&oacute;żną od 0. </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Domyślne
+ustawienia klasy CRS232:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">ioctl(USTAW_PREDKOSC,PREDKOSC_9600);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">ioctl(USTAW_BITY_DANYCH,BITY_DANYCH_8);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">ioctl(USTAW_PARZYSTOSC,PARZYSTOSC_BRAK_KONTROLI);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">ioctl(USTAW_BITY_STOPU,BITY_STOPU_1);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Na koniec
+pracy zamykamy bufor </FONT>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">com.close();</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Przykłady:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Przedstawię
+jedynie przykłady dla dos. Wszystkie operacje na obiekcie w win są
+identyczne. Jeden program demonstruje wysyłanie danych a drugi
+odbieranie. Po uruchomieniu programu należy wybrać numer portu kt&oacute;ry
+ma być wykorzystany w programie. Ponieważ klasa CRS232 nie ma
+możliwości samodzielnego zgłaszania konieczności obsłużenia odczyt
+należy przeprowadzać samodzielnie. Te dwa programy demonstrują
+przesyłanie napis&oacute;w zakończonych znakiem końca wiersza.
+Wstawianie tego znaku ma znaczenie zwłaszcza w przypadku odczytu bo
+program tak długo będzie zbierał dane przed wyświetleniem dop&oacute;ki
+nie odczyta znaku '\n'. Kod został przetestowany na dw&oacute;ch
+komputerach PC. Można też jako źr&oacute;dło danych wykorzystać jakiś
+sterownik wyposażony w RS232 i wysyłać z niego dane do PC na kt&oacute;rym
+pracuje program nr 2. Dane wysyłane do tego programu powinne być
+tekstowe a każda paczka zakończona znakiem '\n'. Wyjaśnienia wymagają
+ścieżki dostępu do plik&oacute;w bibliotecznych. Zakładam istnienie
+katalogu przeznaczonego na projekty. W tym katalogu jest katalog
+<SPAN LANG="pl-PL">include</SPAN> zawierający pliki takie jak ster.*
+typy.* rs232.* . W katalogu zawierającym projekty dla każdego nowego
+programu tworzymy nowy katalog np. dla tego artykułu programy
+umieszczone są w katalogu PortRS. Struktura katalog&oacute;w może
+wyglądać tak:</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">c:\projekty\include</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">c:\projekty\PortRS</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">c:\projekty\avt1085</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Program
+rs1.cpp</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">#include
+&lt;iostream.h&gt;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">#include
+&lt;cstring.h&gt;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">#include
+&quot;..\include\rs232.h&quot;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">#include
+&quot;..\include\typy.h&quot;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">CRS232
+com;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">main()</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">{</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+size_t p;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+cout&lt;&lt;&quot;numer portu (1,2,3,4) : ?&quot;&lt;&lt;endl;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+cin&gt;&gt;p;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+switch(p){</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+case 1:      p=COM1;    break;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+case 2:      p=COM2;    break;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+case 3:      p=COM3;    break;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+case 4:      p=COM4;    break;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+default :</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+  cout&lt;&lt;&quot; zły numer portu&quot;&lt;&lt;endl;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+  return 0;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">  }</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+if(ERR_NODEV==com.open(p)){</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+cout&lt;&lt;&quot;error CRS232::open()&quot;&lt;&lt;endl;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+return 0;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">  }</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+unsigned char buf[100];</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+string str;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+while(str!=&quot;exit\n&quot;){</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+cin&gt;&gt;str;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+str+='\n';</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+if(str==&quot;czysc\n&quot;){</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+  com.ioctl(CZYSC_BUFORY);</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+}else{</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+  memcpy(buf,str.c_str(),str.length());</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+  com.write((par_t*)buf,str.length());</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+}</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+};</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western"> 
+if(com.close()!=OK)</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">   
+cout&lt;&lt;&quot;blad podczas zamkniecia portu&quot;&lt;&lt;endl;</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><CODE CLASS="western">}</CODE></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2>Program
+rs2.cpp</FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">#include
+&lt;iostream.h&gt;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">#include
+&lt;cstring.h&gt;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">#include
+&lt;conio.h&gt;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">#include
+&quot;..\include\rs232.h&quot;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">#include
+&quot;..\include\typy.h&quot;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">typedef
+char teraz;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">CRS232
+com;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">main()</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">{</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ size_t p;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ cout&lt;&lt;&quot;numer portu (1,2,3,4) : ?&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ cin&gt;&gt;p;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ switch(p){</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   case 1:      p=COM1;    break;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   case 2:      p=COM2;    break;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   case 3:      p=COM3;    break;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   case 4:      p=COM4;    break;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   default :</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     cout&lt;&lt;&quot; zły numer portu&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     return 0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ }</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ if(ERR_NODEV==com.open(p)){</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   cout&lt;&lt;&quot;error CRS232::open()&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   return 0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ }</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ size_t sz=1000;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ size_t res=0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ teraz buf[1000];</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ size_t buf_ix=0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ memset(buf,'\0',sz);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ char str[1000];</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ size_t str_ix=0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western"><FONT SIZE=2>
+ size_t wskwy;</FONT></CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ memset(str,'\0',sz);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ do{</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   res=com.read((par_t*)buf,sz);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   if(res)</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     cout&lt;&lt;&quot;buf po com.read(...) = &quot;&lt;&lt;buf&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   while(res--){</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     com.ioctl(DAJ_WSKAZNIK_WYPELNIENIA,(par_t)&amp;wskwy);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     cout&lt;&lt;&quot;wskaznik wypelnienia : &quot;&lt;&lt;wskwy&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     if((str[str_ix++]=buf[buf_ix++])=='\n'){</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+       cout&lt;&lt;&quot;skompletowano napis : str = &quot;&lt;&lt;str;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+       memset(str,'\0',str_ix);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+       str_ix=0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+       cout&lt;&lt;&quot;pobiera kolejny ciag&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+     }</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   }</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   memset(buf,'\0',buf_ix);</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   buf_ix=0;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ }while(!kbhit());</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+ if(com.close()!=OK)</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">
+   cout&lt;&lt;&quot;blad podczas zamkniecia portu&quot;&lt;&lt;endl;</CODE></FONT></P>
+<P ALIGN=JUSTIFY STYLE="margin-bottom: 0cm"><FONT SIZE=2><CODE CLASS="western">}</CODE></FONT></P>
+</BODY>
+</HTML>
