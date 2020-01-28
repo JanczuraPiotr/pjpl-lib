@@ -16,31 +16,201 @@ DateTime::DateTime(const std::string &timeStamp) {
     set(timeStamp);
 }
 
-//Duration DateTime::getSeconds() const noexcept {
-//    return boost::posix_time::seconds;
-//}
-//
-//
-void DateTime::set(const std::string &timeStamp) {
+pjpl::String DateTime::getStringDateTime() const noexcept {
+    pjpl::String s;
+
+    s += ( ptime.date().year() < 10
+            ? "0" + std::to_string(ptime.date().year())
+            : std::to_string(ptime.date().year()) ) + "-";
+    s += ( ptime.date().month() < 10
+            ? "0" + std::to_string(ptime.date().month())
+            : std::to_string(ptime.date().month()) ) + "-";
+    s += ( ptime.date().day()   < 10
+            ? "0" + std::to_string(ptime.date().day())
+            : std::to_string(ptime.date().day()) ) + " ";
+
+    s += ( ptime.time_of_day().hours() < 10
+            ? "0" + std::to_string(ptime.time_of_day().hours())
+            : std::to_string(ptime.time_of_day().hours())) + ":";
+    s += ( ptime.time_of_day().minutes() < 10
+            ? "0" + std::to_string(ptime.time_of_day().minutes())
+            : std::to_string(ptime.time_of_day().minutes()) ) + ":";
+    s += ( ptime.time_of_day().seconds() < 10
+            ? "0" + std::to_string(ptime.time_of_day().seconds())
+            : std::to_string(ptime.time_of_day().seconds()) );
+
+    return s;
+};
+
+pjpl::String DateTime::getStringDate() const noexcept {
+    pjpl::String s;
+
+    s += ( ptime.date().year()  < 10
+            ? "0" + std::to_string(ptime.date().year())
+            : std::to_string(ptime.date().year()) ) + "-";
+    s += ( ptime.date().month() < 10
+            ? "0" + std::to_string(ptime.date().month())
+            : std::to_string(ptime.date().month()) ) + "-";
+    s += ( ptime.date().day()   < 10
+            ? "0" + std::to_string(ptime.date().day())
+            : std::to_string(ptime.date().day()) );
+
+    return s;
+};
+
+pjpl::String DateTime::getStringTime() const noexcept {
+    pjpl::String s;
+
+    s += ( ptime.time_of_day().hours()   < 10
+            ? "0" + std::to_string(ptime.time_of_day().hours())
+            : std::to_string(ptime.time_of_day().hours())) + ":";
+    s += ( ptime.time_of_day().minutes() < 10
+            ? "0" + std::to_string(ptime.time_of_day().minutes())
+            : std::to_string(ptime.time_of_day().minutes()) ) + ":";
+    s += ( ptime.time_of_day().seconds() < 10
+            ? "0" + std::to_string(ptime.time_of_day().seconds())
+            : std::to_string(ptime.time_of_day().seconds()) );
+
+    return s;
+};
+
+DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
+    if (timeStr.length() > 19 || (timeStr.length() != 10 && timeStr.length() != 19)) {
+        return Type::BAD;
+    }
+    std::size_t cursor = 0;
+    SimpleTM stm;
+    if (timeStr.length() >= 10) {
+        for ( ; cursor < 4; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr[cursor++] != '-') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 7; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr[cursor++] != '-') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 10; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr.length() == 10) {
+            stm = DateTime::simpleTm(timeStr);
+            if (
+                    ( stm.year > 0 && stm.year < 9999 )&&
+                    ( stm.mon > 0 && stm.mon < 13 )&&
+                    ( stm.mday > 0 && stm.mday < 32 )
+                    ) {
+                return Type::DATE;
+            } else {
+                return Type::BAD;
+            }
+        }
+    }
+    if (timeStr.length() == 19 ) {
+        if (timeStr[cursor++] != ' ') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 13; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr[cursor++] != ':') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 16; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr[cursor++] != ':') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 19; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        /* @work : */stm = DateTime::simpleTm(timeStr);
+    } else if (timeStr.length() == 8 ) { // tylko godzina
+        cursor = 0;
+        for ( ; cursor < 3; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        stm.hour = std::stoi(timeStr.substr(0, 2));
+        if (timeStr[cursor++] != ':') {
+            return Type::BAD;
+        }
+        stm.min = std::stoi(timeStr.substr(3, 2));
+        for ( ; cursor < 6; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        if (timeStr[cursor++] != ':') {
+            return Type::BAD;
+        }
+        for ( ; cursor < 9; ++cursor) {
+            if (!std::isdigit(timeStr[cursor])) {
+                return Type::BAD;
+            }
+        }
+        /*@work : */stm.sec = std::stoi(timeStr.substr(7, 2));
+    }
+    stm = DateTime::simpleTm(timeStr);
+    if (
+            ( stm.year > 0 && stm.year < 9999 )&&
+            ( stm.mon > 0 && stm.mon < 13 )&&
+            ( stm.mday > 0 && stm.mday < 32 ) &&
+            ( stm.hour >= 0 && stm.hour < 24 ) &&
+            ( stm.min >= 0 && stm.min < 60 ) &&
+            ( stm.sec >= 0 && stm.sec < 60 )
+            ) {
+        return Type::DATE_HOUR;
+    } else {
+        return Type::BAD;
+    }
+
+}
+
+void DateTime::set(const std::string &timeStamp) noexcept {
     switch (check(timeStamp)) {
-        case DateTimeEnum::DATE: {
+        case Type::DATE: {
             ptime = boost::posix_time::time_from_string(timeStamp + " 00:00:00");
         }
             break;
-        case DateTimeEnum::HOUR: {
+        case Type::HOUR: {
             ptime = boost::posix_time::time_from_string( getStringDate() + timeStamp);
         }
             break;
-        case DateTimeEnum::DATE_HOUR: {
+        case Type::DATE_HOUR: {
             ptime = boost::posix_time::time_from_string(timeStamp);
         }
             break;
-        case DateTimeEnum::BAD : {
+        case Type::BAD : {
             ptime = boost::posix_time::time_from_string("1970-01-01 00:00:00");
         }
     }
 }
 
+
+
+//Duration DateTime::getSeconds() const noexcept {
+//    return boost::posix_time::seconds;
+//}
+//
+//
 
 //    std::string DateTime::transformFromYmD(const std::string &date)
 //    {
@@ -74,51 +244,51 @@ void DateTime::set(const std::string &timeStamp) {
 //    void DateTime::set(const std::string &timeStamp)
 //    {
 //        switch (check(timeStamp)) {
-//            case DateTimeEnum::DATE: {
+//            case Type::DATE: {
 //                ptime = boost::posix_time::time_from_string(timeStamp + " 00:00:00");
 //            }
 //                break;
-//            case DateTimeEnum::HOUR: {
+//            case Type::HOUR: {
 //                ptime = boost::posix_time::time_from_string( getStringDate() + timeStamp);
 //            }
 //                break;
-//            case DateTimeEnum::DATE_HOUR: {
+//            case Type::DATE_HOUR: {
 //                ptime = boost::posix_time::time_from_string(timeStamp);
 //            }
 //                break;
-//            case DateTimeEnum::BAD : {
+//            case Type::BAD : {
 //                ptime = boost::posix_time::time_from_string("1970-01-01 00:00:00");
 //            }
 //        }
 //    }
 //
-//    DateTime::Type DateTime::check(const std::string &timeStr)
+//    DateTime:: DateTime::check(const std::string &timeStr)
 //    {
 //        if (timeStr.length() > 19 || (timeStr.length() != 10 && timeStr.length() != 19)) {
-//            return DateTimeEnum::BAD;
+//            return Type::BAD;
 //        }
 //        std::size_t cursor = 0;
 //        SimpleTM stm;
 //        if (timeStr.length() >= 10) {
 //            for ( ; cursor < 4; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr[cursor++] != '-') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 7; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr[cursor++] != '-') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 10; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr.length() == 10) {
@@ -128,35 +298,35 @@ void DateTime::set(const std::string &timeStamp) {
 //                        ( stm.mon > 0 && stm.mon < 13 )&&
 //                        ( stm.mday > 0 && stm.mday < 32 )
 //                        ) {
-//                    return DateTimeEnum::DATE;
+//                    return Type::DATE;
 //                } else {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //        }
 //        if (timeStr.length() == 19 ) {
 //            if (timeStr[cursor++] != ' ') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 13; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr[cursor++] != ':') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 16; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr[cursor++] != ':') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 19; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            stm = DateTime::simpleTm(timeStr);
@@ -164,25 +334,25 @@ void DateTime::set(const std::string &timeStamp) {
 //            cursor = 0;
 //            for ( ; cursor < 3; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            stm.hour = std::stoi(timeStr.substr(0, 2));
 //            if (timeStr[cursor++] != ':') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            stm.min = std::stoi(timeStr.substr(3, 2));
 //            for ( ; cursor < 6; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            if (timeStr[cursor++] != ':') {
-//                return DateTimeEnum::BAD;
+//                return Type::BAD;
 //            }
 //            for ( ; cursor < 9; ++cursor) {
 //                if (!std::isdigit(timeStr[cursor])) {
-//                    return DateTimeEnum::BAD;
+//                    return Type::BAD;
 //                }
 //            }
 //            stm.sec = std::stoi(timeStr.substr(7, 2));
@@ -196,9 +366,9 @@ void DateTime::set(const std::string &timeStamp) {
 //                ( stm.min >= 0 && stm.min < 60 ) &&
 //                ( stm.sec >= 0 && stm.sec < 60 )
 //                ) {
-//            return DateTimeEnum::DATE_HOUR;
+//            return Type::DATE_HOUR;
 //        } else {
-//            return DateTimeEnum::BAD;
+//            return Type::BAD;
 //        }
 //
 //    }
@@ -241,35 +411,7 @@ void DateTime::set(const std::string &timeStamp) {
 //        return s;
 //    }
 //
-//    std::string DateTime::getStringDateTime() const {
-//        std::string s;
-//
-//        s += ( ptime.date().year()  < 10 ? "0" + std::to_string(ptime.date().year())  : std::to_string(ptime.date().year()) ) + "-";
-//        s += ( ptime.date().month() < 10 ? "0" + std::to_string(ptime.date().month()) : std::to_string(ptime.date().month()) ) + "-";
-//        s += ( ptime.date().day()   < 10 ? "0" + std::to_string(ptime.date().day())   : std::to_string(ptime.date().day()) ) + " ";
-//
-//        s += ( ptime.time_of_day().hours()   < 10 ? "0" + std::to_string(ptime.time_of_day().hours())   : std::to_string(ptime.time_of_day().hours())) + ":";
-//        s += ( ptime.time_of_day().minutes() < 10 ? "0" + std::to_string(ptime.time_of_day().minutes()) : std::to_string(ptime.time_of_day().minutes()) ) + ":";
-//        s += ( ptime.time_of_day().seconds() < 10 ? "0" + std::to_string(ptime.time_of_day().seconds()) : std::to_string(ptime.time_of_day().seconds()) );
-//
-//        return s;
-//    };
 
-std::string DateTime::getStringDate() const {
-    std::string s;
-    s += ( ptime.date().year()  < 10 ? "0" + std::to_string(ptime.date().year())  : std::to_string(ptime.date().year()) ) + "-";
-    s += ( ptime.date().month() < 10 ? "0" + std::to_string(ptime.date().month()) : std::to_string(ptime.date().month()) ) + "-";
-    s += ( ptime.date().day()   < 10 ? "0" + std::to_string(ptime.date().day())   : std::to_string(ptime.date().day()) );
-    return s;
-};
-
-//    std::string DateTime::getStringTime() const {
-//        std::string s;
-//        s += ( ptime.time_of_day().hours()   < 10 ? "0" + std::to_string(ptime.time_of_day().hours())   : std::to_string(ptime.time_of_day().hours())) + ":";
-//        s += ( ptime.time_of_day().minutes() < 10 ? "0" + std::to_string(ptime.time_of_day().minutes()) : std::to_string(ptime.time_of_day().minutes()) ) + ":";
-//        s += ( ptime.time_of_day().seconds() < 10 ? "0" + std::to_string(ptime.time_of_day().seconds()) : std::to_string(ptime.time_of_day().seconds()) );
-//        return s;
-//    };
 //
 //    boost::posix_time::time_duration DateTime::fromEpoch() {
 //        boost::posix_time::ptime startEpoch(boost::gregorian::date(1970,1,1));
@@ -325,115 +467,6 @@ std::string DateTime::getStringDate() const {
 //    DateTime::~DateTime() {
 //    }
 //
-DateTime::Type DateTime::check(const std::string &timeStr){
-    if (timeStr.length() > 19 || (timeStr.length() != 10 && timeStr.length() != 19)) {
-        return DateTimeEnum::BAD;
-    }
-    std::size_t cursor = 0;
-    SimpleTM stm;
-    if (timeStr.length() >= 10) {
-        for ( ; cursor < 4; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr[cursor++] != '-') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 7; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr[cursor++] != '-') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 10; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr.length() == 10) {
-            stm = DateTime::simpleTm(timeStr);
-            if (
-                    ( stm.year > 0 && stm.year < 9999 )&&
-                    ( stm.mon > 0 && stm.mon < 13 )&&
-                    ( stm.mday > 0 && stm.mday < 32 )
-                    ) {
-                return DateTimeEnum::DATE;
-            } else {
-                return DateTimeEnum::BAD;
-            }
-        }
-    }
-    if (timeStr.length() == 19 ) {
-        if (timeStr[cursor++] != ' ') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 13; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr[cursor++] != ':') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 16; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr[cursor++] != ':') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 19; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        stm = DateTime::simpleTm(timeStr);
-    } else if (timeStr.length() == 8 ) { // tylko godzina
-        cursor = 0;
-        for ( ; cursor < 3; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        stm.hour = std::stoi(timeStr.substr(0, 2));
-        if (timeStr[cursor++] != ':') {
-            return DateTimeEnum::BAD;
-        }
-        stm.min = std::stoi(timeStr.substr(3, 2));
-        for ( ; cursor < 6; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        if (timeStr[cursor++] != ':') {
-            return DateTimeEnum::BAD;
-        }
-        for ( ; cursor < 9; ++cursor) {
-            if (!std::isdigit(timeStr[cursor])) {
-                return DateTimeEnum::BAD;
-            }
-        }
-        stm.sec = std::stoi(timeStr.substr(7, 2));
-    }
-    stm = DateTime::simpleTm(timeStr);
-    if (
-            ( stm.year > 0 && stm.year < 9999 )&&
-            ( stm.mon > 0 && stm.mon < 13 )&&
-            ( stm.mday > 0 && stm.mday < 32 ) &&
-            ( stm.hour >= 0 && stm.hour < 24 ) &&
-            ( stm.min >= 0 && stm.min < 60 ) &&
-            ( stm.sec >= 0 && stm.sec < 60 )
-            ) {
-        return DateTimeEnum::DATE_HOUR;
-    } else {
-        return DateTimeEnum::BAD;
-    }
-
-}
 //
 //    int DateTime::diffInSec(const old::DateTime &dt) {
 //        boost::posix_time::time_duration td;

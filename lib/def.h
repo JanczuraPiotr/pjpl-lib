@@ -11,7 +11,7 @@
 namespace pjpl {
 
 typedef uint64_t Duration;
-
+typedef std::string String;  // albo typedef std::wstring String;
 
 
 }

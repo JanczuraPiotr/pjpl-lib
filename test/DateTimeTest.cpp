@@ -11,11 +11,50 @@
 
 namespace test{
 
-TEST_F(DateTimeTest, init_from_string)
+TEST_F(DateTimeTest, init_from_string_YYYY_MM_dd_hh_mm_ss)
 {
-    pjpl::DateTime dateTime("1970-01-01 00:00:00");
+    pjpl::String dateString("1970-01-01 00:00:00");
+    pjpl::DateTime dateTime(dateString);
 
-    EXPECT_EQ(true, false);
+    EXPECT_EQ(dateTime.getStringDateTime(), dateString);
+    EXPECT_EQ(dateTime.getStringDate(), dateString.substr(0, 10));
+    EXPECT_EQ(dateTime.getStringTime(), dateString.substr(11, 9));
+}
+
+TEST_F(DateTimeTest, check)
+{
+    pjpl::String timeStr = "1r111";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-11 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::DATE_HOUR);
+    timeStr = "1111-11-11 00:00:00";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::DATE_HOUR);
+    timeStr = "1111-11-11 ";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-11";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::DATE);
+    timeStr = "1111-k1-11 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-41 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-11 12:52:52";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::DATE_HOUR);
+    timeStr = "1111-11-11 32:52:52";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-1112:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-11:12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111k11-11 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "11y1-11-11 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "111-11-11 12:12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11-11 12:12";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
+    timeStr = "1111-11";
+    EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
 }
 
 //TEST_F(DateTimeTest, transformFromYmD)
@@ -85,42 +124,7 @@ TEST_F(DateTimeTest, init_from_string)
 //        } catch(...) {
 //        }
 //    }
-//    void DateTimeTest::testCheck() {
-//        pjpl::DateTime test;
-//
-//        std::string timeStr = "1r111";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-11 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::DATE_HOUR);
-//        timeStr = "1111-11-11 00:00:00";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::DATE_HOUR);
-//        timeStr = "1111-11-11 ";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-11";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::DATE);
-//        timeStr = "1111-k1-11 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-41 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-11 12:52:52";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::DATE_HOUR);
-//        timeStr = "1111-11-11 32:52:52";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-1112:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-11:12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111k11-11 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "11y1-11-11 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "111-11-11 12:12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11-11 12:12";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//        timeStr = "1111-11";
-//        CPPUNIT_ASSERT_MESSAGE(" test daty dla " + timeStr, test.check(timeStr) == pjpl::DateTimeEnum::BAD);
-//    }
+
 //    void DateTimeTest::testGetStringDateTime() {
 //        std::string sd = "2018-02-28 23:59:59";
 //        try {

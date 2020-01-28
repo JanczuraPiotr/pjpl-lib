@@ -12,7 +12,7 @@
 
 namespace pjpl {
 
-
+// Klasa operuje na dacie w formacie ROK-MIESIĄC-DZIEŃ G
 class DateTime {
 public:
     // Typ zmiennej do zrzucania czasu na ilość sekund lub milisekund od początku epoki.
@@ -25,7 +25,7 @@ public:
         int min = 0;
         int sec = 0;
     } SimpleTM;
-    typedef enum class DateTimeEnum {
+    typedef enum class Enum {
         BAD = 0,
         DATE = 1,
         DATE_HOUR = 2,
@@ -33,16 +33,22 @@ public:
     } Type;
 
     DateTime();
-    explicit DateTime(const std::string &timeStamp);
+    explicit DateTime(const pjpl::String &timeStamp);
     virtual ~DateTime() = default;
+
+    static Type check(const std::string &time) noexcept;
+
+    [[nodiscard]] pjpl::String getStringDateTime() const noexcept;
+    [[nodiscard]] pjpl::String getStringDate() const noexcept;
+    [[nodiscard]] pjpl::String getStringTime() const noexcept;
+
+    virtual void set(const std::string &value) noexcept;
 
 //    Duration getSeconds() const noexcept ;
 //    //Duration getMilliseconds();
 //
-    virtual void set(const std::string &value);
-    static Type check(const std::string &time);
 
-//    explicit DateTime(const std::wstring &timeStamp);
+
 //    DateTime(boost::posix_time::ptime ptime);
 //    DateTime(DateTime &&other);
 //    DateTime(const DateTime &dateTime);
@@ -72,9 +78,6 @@ public:
 //    boost::posix_time::ptime get() const;
 //    std::time_t time_t();
 //    std::string getString() { return getStringDateTime(); };
-//    std::string getStringDateTime();
-    std::string getStringDate() const ;
-//    std::string getStringTime();
 //    std::string getStringMs();
 //    int getWeekdayNr();
 ////        boost::posix_time::ptime next01MinInterval();
