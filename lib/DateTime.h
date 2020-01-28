@@ -12,7 +12,7 @@
 
 namespace pjpl {
 
-// Klasa operuje na dacie w formacie ROK-MIESIĄC-DZIEŃ G
+// Klasa operuje na dacie w formacie ROK-MIESIĄC-DZIEŃ GODZINA:MINUTA:SEKUNDA - liczby z wiodącym zerem
 class DateTime {
 public:
     // Typ zmiennej do zrzucania czasu na ilość sekund lub milisekund od początku epoki.
