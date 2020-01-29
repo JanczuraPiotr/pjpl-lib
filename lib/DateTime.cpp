@@ -12,8 +12,9 @@ DateTime::DateTime()
 {
 }
 
-DateTime::DateTime(const std::string &timeStamp) {
-    set(timeStamp);
+DateTime::DateTime(const std::string &timeStamp)
+    : ptime(DateTime::createPtime(timeStamp))
+{
 }
 
 pjpl::String DateTime::getStringDateTime() const noexcept {
@@ -40,23 +41,27 @@ pjpl::String DateTime::getStringDateTime() const noexcept {
             : std::to_string(ptime.time_of_day().seconds()) );
 
     return s;
-};
+}
 
 pjpl::String DateTime::getStringDate() const noexcept {
+    return DateTime::getStringDate(ptime);
+}
+
+pjpl::String DateTime::getStringDate(const boost::posix_time::ptime &ptime) noexcept {
     pjpl::String s;
 
     s += ( ptime.date().year()  < 10
-            ? "0" + std::to_string(ptime.date().year())
-            : std::to_string(ptime.date().year()) ) + "-";
+           ? "0" + std::to_string(ptime.date().year())
+           : std::to_string(ptime.date().year()) ) + "-";
     s += ( ptime.date().month() < 10
-            ? "0" + std::to_string(ptime.date().month())
-            : std::to_string(ptime.date().month()) ) + "-";
+           ? "0" + std::to_string(ptime.date().month())
+           : std::to_string(ptime.date().month()) ) + "-";
     s += ( ptime.date().day()   < 10
-            ? "0" + std::to_string(ptime.date().day())
-            : std::to_string(ptime.date().day()) );
+           ? "0" + std::to_string(ptime.date().day())
+           : std::to_string(ptime.date().day()) );
 
     return s;
-};
+}
 
 pjpl::String DateTime::getStringTime() const noexcept {
     pjpl::String s;
@@ -72,9 +77,9 @@ pjpl::String DateTime::getStringTime() const noexcept {
             : std::to_string(ptime.time_of_day().seconds()) );
 
     return s;
-};
+}
 
-DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
+DateTime::Type DateTime::check(const pjpl::String &timeStr)  {
     if (timeStr.length() > 19 || (timeStr.length() != 10 && timeStr.length() != 19)) {
         return Type::BAD;
     }
@@ -140,7 +145,6 @@ DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
                 return Type::BAD;
             }
         }
-        /* @work : */stm = DateTime::simpleTm(timeStr);
     } else if (timeStr.length() == 8 ) { // tylko godzina
         cursor = 0;
         for ( ; cursor < 3; ++cursor) {
@@ -148,11 +152,9 @@ DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
                 return Type::BAD;
             }
         }
-        stm.hour = std::stoi(timeStr.substr(0, 2));
         if (timeStr[cursor++] != ':') {
             return Type::BAD;
         }
-        stm.min = std::stoi(timeStr.substr(3, 2));
         for ( ; cursor < 6; ++cursor) {
             if (!std::isdigit(timeStr[cursor])) {
                 return Type::BAD;
@@ -166,7 +168,6 @@ DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
                 return Type::BAD;
             }
         }
-        /*@work : */stm.sec = std::stoi(timeStr.substr(7, 2));
     }
     stm = DateTime::simpleTm(timeStr);
     if (
@@ -184,23 +185,23 @@ DateTime::Type DateTime::check(const std::string &timeStr) noexcept {
 
 }
 
-void DateTime::set(const std::string &timeStamp) noexcept {
-    switch (check(timeStamp)) {
+boost::posix_time::ptime DateTime::createPtime(const std::string &time) noexcept {
+    switch (check(time)) {
         case Type::DATE: {
-            ptime = boost::posix_time::time_from_string(timeStamp + " 00:00:00");
+            return boost::posix_time::time_from_string(time + " 00:00:00");
         }
-            break;
         case Type::HOUR: {
-            ptime = boost::posix_time::time_from_string( getStringDate() + timeStamp);
+            boost::posix_time::ptime ptime;
+            return boost::posix_time::time_from_string(DateTime::getStringDate(ptime) + time);
         }
-            break;
         case Type::DATE_HOUR: {
-            ptime = boost::posix_time::time_from_string(timeStamp);
+            return boost::posix_time::time_from_string(time);
         }
-            break;
         case Type::BAD : {
-            ptime = boost::posix_time::time_from_string("1970-01-01 00:00:00");
+            return boost::posix_time::time_from_string("1970-01-01 00:00:00");
         }
+        default:
+            return boost::posix_time::ptime();
     }
 }
 
@@ -533,8 +534,8 @@ void DateTime::set(const std::string &timeStamp) noexcept {
 //    }
 //
 
-DateTime::SimpleTM DateTime::simpleTm(const std::string &timeStamp) {
-    SimpleTM stm;
+DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
+    SimpleTM stm{0,0,0,0,0,0};
     // YYYY-MM-DD hh:mm:ss
     if (timeStamp.length() > 3){
         stm.year = std::stoi(timeStamp.substr(0, 4));

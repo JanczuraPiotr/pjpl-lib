@@ -36,13 +36,16 @@ public:
     explicit DateTime(const pjpl::String &timeStamp);
     virtual ~DateTime() = default;
 
-    static Type check(const std::string &time) noexcept;
+    static Type check(const pjpl::String &time) ;
+    static boost::posix_time::ptime createPtime(const pjpl::String &time) noexcept;
+    [[nodiscard]] static pjpl::String getStringDate(const boost::posix_time::ptime &ptime) noexcept;
+    //[[nodiscard]] static pjpl::String getStringTime(const boost::posix_time::ptime &ptime) noexcept;
 
     [[nodiscard]] pjpl::String getStringDateTime() const noexcept;
     [[nodiscard]] pjpl::String getStringDate() const noexcept;
     [[nodiscard]] pjpl::String getStringTime() const noexcept;
 
-    virtual void set(const std::string &value) noexcept;
+private:
 
 //    Duration getSeconds() const noexcept ;
 //    //Duration getMilliseconds();
