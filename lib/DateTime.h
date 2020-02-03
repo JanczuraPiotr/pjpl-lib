@@ -13,6 +13,8 @@
 namespace pjpl {
 
 // Klasa operuje na dacie w formacie ROK-MIESIĄC-DZIEŃ GODZINA:MINUTA:SEKUNDA - liczby z wiodącym zerem
+// Możliwe również ROK-MIESIĄC-DZIEŃ lub GODZINA:MINUTA:SEKUNDA
+// W przyszłości ROK-MIESIĄC-DZIEŃ GODZINA:MINUTA:SEKUNDA.MILISEKUNDA
 class DateTime {
 public:
     // Typ zmiennej do zrzucania czasu na ilość sekund lub milisekund od początku epoki.
@@ -29,15 +31,18 @@ public:
         BAD = 0,
         DATE = 1,
         DATE_HOUR = 2,
-        HOUR = 3
+        HOUR = 3,
+        // @task MILLISECONDS_FROM_EPOCH,
+        // @task MILLISECONDS_FROM_DAY,
+        // @task MILLISECONDS,
     } Type;
 
     DateTime();
     explicit DateTime(const pjpl::String &timeStamp);
     virtual ~DateTime() = default;
 
-    static Type check(const pjpl::String &time) ;
-    static boost::posix_time::ptime createPtime(const pjpl::String &time) noexcept;
+    [[nodiscard]] static Type check(const pjpl::String &time) ;
+    [[nodiscard]] static boost::posix_time::ptime createPtime(const pjpl::String &time) noexcept;
     [[nodiscard]] static pjpl::String getStringDate(const boost::posix_time::ptime &ptime) noexcept;
     //[[nodiscard]] static pjpl::String getStringTime(const boost::posix_time::ptime &ptime) noexcept;
 
@@ -45,7 +50,8 @@ public:
     [[nodiscard]] pjpl::String getStringDate() const noexcept;
     [[nodiscard]] pjpl::String getStringTime() const noexcept;
 
-private:
+private: // methods
+    static SimpleTM simpleTm(const std::string &timeStamp);
 
 //    Duration getSeconds() const noexcept ;
 //    //Duration getMilliseconds();
@@ -93,7 +99,6 @@ private:
 //    void nextSec();
 //    void now();
 //    virtual void set(std::time_t time);
-    static SimpleTM simpleTm(const std::string &timeStamp);
 //
 //    DateTime &operator = (const std::string &time);
 //    DateTime operator + (const boost::posix_time::time_duration &step);
@@ -108,7 +113,7 @@ private:
 //    friend bool operator > (const DateTime &lv, const DateTime &rv);
 //    friend bool operator >= (const DateTime &lv, const DateTime &rv);
 
-private:
+private: // attributes
     boost::posix_time::ptime ptime;
 
 };
