@@ -2,8 +2,8 @@
 // Created by piotr@janczura.pl on 2020.01.20
 //
 
-#ifndef PJPL_LIB_DATETIME_H
-#define PJPL_LIB_DATETIME_H
+#ifndef PJPL_LIB_DATETIME
+#define PJPL_LIB_DATETIME
 
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -32,10 +32,12 @@ public:
         DATE = 1,
         DATE_HOUR = 2,
         HOUR = 3,
-        // @task MILLISECONDS_FROM_EPOCH,
-        // @task MILLISECONDS_FROM_DAY,
+        // @task MILLISECONDS_OF_EPOCH,
+        // @task MILLISECONDS_OF_DAY,
         // @task MILLISECONDS,
     } Type;
+
+    static std::string transformFromYmD(const std::string &date) noexcept ;
 
     DateTime();
     explicit DateTime(const pjpl::String &timeStamp);
@@ -46,9 +48,11 @@ public:
     [[nodiscard]] static pjpl::String getStringDate(const boost::posix_time::ptime &ptime) noexcept;
     //[[nodiscard]] static pjpl::String getStringTime(const boost::posix_time::ptime &ptime) noexcept;
 
+    [[nodiscard] ]boost::posix_time::ptime get() const noexcept;
     [[nodiscard]] pjpl::String getStringDateTime() const noexcept;
     [[nodiscard]] pjpl::String getStringDate() const noexcept;
     [[nodiscard]] pjpl::String getStringTime() const noexcept;
+    [[nodiscard]] std::time_t time_t() const noexcept;
 
 private: // methods
     static SimpleTM simpleTm(const std::string &timeStamp);
@@ -84,8 +88,6 @@ private: // methods
 //     * @return
 //     */
 //    int diffInSec(const DateTime &dt);
-//    boost::posix_time::ptime get() const;
-//    std::time_t time_t();
 //    std::string getString() { return getStringDateTime(); };
 //    std::string getStringMs();
 //    int getWeekdayNr();

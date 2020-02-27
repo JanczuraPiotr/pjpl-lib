@@ -6,6 +6,14 @@
 
 namespace pjpl {
 
+std::string DateTime::transformFromYmD(const std::string &date) noexcept
+{
+    if (date[2] == '.' || date[2] == '-') {
+        std::string newDate = date.substr(6, 4) + "-" + date.substr(3, 2) + "-" +date.substr(0,2);
+        return newDate;
+    }
+    return "";
+}
 
 DateTime::DateTime()
     : ptime(boost::posix_time::microsec_clock::local_time())
@@ -144,6 +152,10 @@ boost::posix_time::ptime DateTime::createPtime(const std::string &time) noexcept
     }
 }
 
+boost::posix_time::ptime DateTime::get() const noexcept {
+    return ptime;
+}
+
 pjpl::String DateTime::getStringDateTime() const noexcept {
     pjpl::String s;
 
@@ -204,6 +216,10 @@ pjpl::String DateTime::getStringTime() const noexcept {
             : std::to_string(ptime.time_of_day().seconds()) );
 
     return s;
+}
+
+std::time_t DateTime::time_t() const noexcept {
+    return boost::posix_time::to_time_t(ptime);
 }
 
 DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
@@ -293,9 +309,6 @@ DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
 //        return stm;
 //    }
 //
-//    boost::posix_time::ptime DateTime::get() const {
-//        return ptime;
-//    }
 //
 //    unsigned DateTime::getTotalSeconds() {
 //        return ptime.time_of_day().total_milliseconds();
@@ -369,15 +382,6 @@ DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
 //        td = dt.get() - ptime;
 //        return td.total_seconds();
 //    }
-//
-//    boost::posix_time::ptime DateTime::get() const {
-//        return ptime;
-//    }
-//
-//    std::time_t DateTime::time_t() {
-//        return boost::posix_time::to_time_t(ptime);
-//    }
-//
 //    std::string DateTime::getStringMs() {
 //        return boost::posix_time::to_simple_string(ptime).substr(12);
 //    }

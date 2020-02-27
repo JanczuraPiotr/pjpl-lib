@@ -57,30 +57,31 @@ TEST_F(DateTimeTest, check)
     EXPECT_TRUE(pjpl::DateTime::check(timeStr) == pjpl::DateTime::Type::BAD);
 }
 
-//TEST_F(DateTimeTest, transformFromYmD)
-//{
-//    {
-//        std::string inDate = "11-11-2011";
-//        std::string outDate = "2011-11-11";
-//        EXPECT_EQ(DateTime::transformFromYmD(inDate), outDate);
-//    }
-//    {
-//        std::string inDate = "11.11.2011";
-//        std::string outDate = "2011-11-11";
-//        EXPECT_EQ(DateTime::transformFromYmD(inDate), outDate);
-//    }
-//}
-//
-//    void DateTimeTest::testDateTime() {
-//        pjpl::DateTime dt;
-//        std::time_t tt = boost::posix_time::to_time_t(boost::posix_time::microsec_clock::local_time());
-//        if (dt.time_t() != tt) {
-//            if (dt.time_t() <= tt + 2) {
-//                // zakładam że w czasie testu może zmienić się czas pomiędzy konstruktorem dt a odczytem timt_t
-//                CPPUNIT_ASSERT_MESSAGE("dt = " + std::to_string(dt.time_t()) + " tt = " + std::to_string(tt), false);
-//            }
-//        }
-//    }
+TEST_F(DateTimeTest, transformFromYmD)
+{
+    {
+        std::string inDate = "11-11-2011";
+        std::string outDate = "2011-11-11";
+        EXPECT_EQ(pjpl::DateTime::transformFromYmD(inDate), outDate);
+    }
+    {
+        std::string inDate = "11.11.2011";
+        std::string outDate = "2011-11-11";
+        EXPECT_EQ(pjpl::DateTime::transformFromYmD(inDate), outDate);
+    }
+}
+
+TEST_F(DateTimeTest, time_t)
+{
+    pjpl::DateTime dt;
+    std::time_t tt = boost::posix_time::to_time_t(boost::posix_time::microsec_clock::local_time());
+    if (dt.time_t() != tt) {
+        if (dt.time_t() <= tt + 2) {
+            // zakładam że w czasie testu może zmienić się czas pomiędzy konstruktorem dt a odczytem time_t
+            EXPECT_TRUE(false);
+        }
+    }
+}
 //    void DateTimeTest::testDateTime_copy() {
 //        pjpl::DateTime dt1;
 //        pjpl::DateTime dt2(dt1);
