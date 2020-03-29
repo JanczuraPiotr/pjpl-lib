@@ -82,49 +82,79 @@ TEST_F(DateTimeTest, time_t)
         }
     }
 }
-//    void DateTimeTest::testDateTime_copy() {
-//        pjpl::DateTime dt1;
-//        pjpl::DateTime dt2(dt1);
-//        if (dt1.time_t() != dt2.time_t()) {
-//            CPPUNIT_ASSERT(false);
-//        }
-//    }
-//    void DateTimeTest::testDateTime_string_1() {
-//        std::string sData = "2018-01-12 23:59:59";
-//        pjpl::DateTime dt(sData);
-//        CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), dt.getString() == sData);
-//    }
-//    void DateTimeTest::testDateTime_string_2() {
-//        std::string sData = "2018-01-31 23:59:59";
-//        pjpl::DateTime dt(sData);
-//        CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), dt.getString() == sData);
-//    }
-//    void DateTimeTest::testDateTime_string_2016_02_28_23_59_59() {
-//        std::string sData = "2016-02-28 23:59:59";
-//        pjpl::DateTime dt(sData);
-//        CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), dt.getString() == sData);
-//    }
-//    void DateTimeTest::testDateTime_string_2016_02_29_23_59_59() {
-//        std::string sData = "2016-02-29 23:59:59";
-//        pjpl::DateTime dt(sData);
-//        CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), dt.getString() == sData);
-//    }
-//    void DateTimeTest::testDateTime_string_2017_02_28_23_59_59() {
-//        std::string sData = "2017-02-28 23:59:59";
-//        CPPUNIT_ASSERT_NO_THROW_MESSAGE("for input data : " + sData + " created invalid obiect", pjpl::DateTime _(sData) );
-//        pjpl::DateTime dt(sData);
-//        if(dt.getString() != sData) {
-//            CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), false);
-//        }
-//    }
-//    void DateTimeTest::testDateTime_string_2017_02_29_23_59_59() {
-//        std::string sData = "2017-02-29 23:59:59";
-//        try {
-//            pjpl::DateTime dt(sData);
-//            CPPUNIT_ASSERT_MESSAGE("input data = " + sData + " result data = " + dt.getString(), false);
-//        } catch(...) {
-//        }
-//    }
+TEST_F(DateTimeTest, testGetStringTime)
+{
+    std::string sDateTime   = "2018-02-28 23:59:59";
+    std::string sDate       = "2018-02-28";
+    std::string sTime       = "23:59:59";
+    try {
+        pjpl::DateTime dt1(sDateTime);
+        EXPECT_EQ(dt1.getStringTime(), sTime);
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sDateTime);
+    }
+
+    sDateTime   = "2018-02-28 00:00:00";
+    sDate       = "2018-02-28";
+    sTime       = "00:00:00";
+    try {
+        pjpl::DateTime dt2(sDateTime);
+        EXPECT_EQ(dt2.getStringDateTime(), sDateTime);
+    } catch (std::exception &e) {
+        EXPECT_TRUE(false) << ("input = " + sDateTime + " exception : " + e.what());
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sDateTime);
+    }
+}
+
+
+TEST_F(DateTimeTest,testDateTime_copy) {
+    pjpl::DateTime dt1;
+    pjpl::DateTime dt2(dt1);
+    if (dt1.time_t() != dt2.time_t()) {
+        EXPECT_TRUE(false);
+    }
+}
+
+TEST_F(DateTimeTest, testDateTime_string_1)
+{
+    std::string sData = "2018-01-12 23:59:59";
+    pjpl::DateTime dt(sData);
+    EXPECT_EQ(dt.getString(), sData) << ("input data = " + sData + " result data = " + dt.getString());
+}
+
+TEST_F(DateTimeTest,testDateTime_string_2) {
+    std::string sData = "2018-01-31 23:59:59";
+    pjpl::DateTime dt(sData);
+    EXPECT_EQ(dt.getString(), sData) << ("input data = " + sData + " result data = " + dt.getString());
+}
+
+TEST_F(DateTimeTest, testDateTime_string_2016_02_28_23_59_59) {
+    std::string sData = "2016-02-28 23:59:59";
+    pjpl::DateTime dt(sData);
+    EXPECT_EQ(dt.getString(), sData) << ("input data = " + sData + " result data = " + dt.getString());
+}
+
+TEST_F(DateTimeTest, testDateTime_string_2016_02_29_23_59_59){
+    std::string sData = "2016-02-29 23:59:59";
+    pjpl::DateTime dt(sData);
+    EXPECT_EQ(dt.getString(), sData) << ("input data = " + sData + " result data = " + dt.getString());
+}
+
+TEST_F(DateTimeTest, testDateTime_string_2017_02_28_23_59_59) {
+    std::string sData = "2017-02-28 23:59:59";
+    pjpl::DateTime dt(sData);
+    EXPECT_EQ(dt.getString(), sData) << ("input data = " + sData + " result data = " + dt.getString());
+}
+
+TEST_F(DateTimeTest, testDateTime_string_2017_02_29_23_59_59) {
+    pjpl::String sData = "2017-02-29 23:59:59";
+    try {
+        pjpl::DateTime dateTime(sData);// boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::gregorian::bad_day_of_month> >);
+        FAIL() << "zły dzień w dacie 2017-02-29 23:59:59";
+    } catch (...) {
+    }
+}
 
 //    void DateTimeTest::testGetStringDateTime() {
 //        std::string sd = "2018-02-28 23:59:59";
@@ -164,29 +194,7 @@ TEST_F(DateTimeTest, time_t)
 //            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime , false);
 //        }
 //    }
-//    void DateTimeTest::testGetStringTime() {
-//        std::string sDateTime   = "2018-02-28 23:59:59";
-//        std::string sDate       = "2018-02-28";
-//        std::string sTime       = "23:59:59";
-//        try {
-//            pjpl::DateTime dt1(sDateTime);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime + " result = " + dt1.getStringTime() , dt1.getStringTime() == sTime);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime , false);
-//        }
-//
-//        sDateTime   = "2018-02-28 00:00:00";
-//        sDate       = "2018-02-28";
-//        sTime       = "00:00:00";
-//        try {
-//            pjpl::DateTime dt2(sDateTime);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime + " result = " + dt2.getStringDateTime() , dt2.getStringDateTime() == sDateTime);
-//        } catch (std::exception &e) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime + " exception : " + e.what(), false);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime , false);
-//        }
-//    }
+
 //
 //    void DateTimeTest::testSet_string() {
 //        std::string sd;

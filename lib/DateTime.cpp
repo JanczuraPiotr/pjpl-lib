@@ -132,7 +132,7 @@ DateTime::Type DateTime::check(const pjpl::String &timeStr)  {
 
 }
 
-boost::posix_time::ptime DateTime::createPtime(const std::string &time) noexcept {
+boost::posix_time::ptime DateTime::createPtime(const std::string &time) {
     switch (check(time)) {
         case Type::DATE: {
             return boost::posix_time::time_from_string(time + " 00:00:00");
@@ -156,7 +156,7 @@ boost::posix_time::ptime DateTime::get() const noexcept {
     return ptime;
 }
 
-pjpl::String DateTime::getStringDateTime() const noexcept {
+pjpl::String DateTime::getStringDateTime() const {
     pjpl::String s;
 
     s += ( ptime.date().year() < 10
@@ -180,6 +180,10 @@ pjpl::String DateTime::getStringDateTime() const noexcept {
             : std::to_string(ptime.time_of_day().seconds()) );
 
     return s;
+}
+
+std::string DateTime::getString() const {
+    return getStringDateTime();
 }
 
 pjpl::String DateTime::getStringDate() const noexcept {

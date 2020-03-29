@@ -44,12 +44,12 @@ public:
     virtual ~DateTime() = default;
 
     [[nodiscard]] static Type check(const pjpl::String &time) ;
-    [[nodiscard]] static boost::posix_time::ptime createPtime(const pjpl::String &time) noexcept;
+    [[nodiscard]] static boost::posix_time::ptime createPtime(const pjpl::String &time);
     [[nodiscard]] static pjpl::String getStringDate(const boost::posix_time::ptime &ptime) noexcept;
-    //[[nodiscard]] static pjpl::String getStringTime(const boost::posix_time::ptime &ptime) noexcept;
 
     [[nodiscard] ]boost::posix_time::ptime get() const noexcept;
-    [[nodiscard]] pjpl::String getStringDateTime() const noexcept;
+    [[nodiscard]] std::string getString() const;
+    [[nodiscard]] pjpl::String getStringDateTime() const;
     [[nodiscard]] pjpl::String getStringDate() const noexcept;
     [[nodiscard]] pjpl::String getStringTime() const noexcept;
     [[nodiscard]] std::time_t time_t() const noexcept;
@@ -72,11 +72,6 @@ private: // methods
 //     * @param timeDuration
 //     */
 //    DateTime(const DateTime &dateTime, const boost::posix_time::time_duration &timeDuration);
-//    /**
-//     * Utworzy obiekt dla daty w formacie : "Y-m-d H:M:S"
-//     * @param timeStamp
-//     */
-//    DateTime(const std::string &timeStamp);
 //    DateTime(boost::posix_time::ptime &timeStamp);
 //    DateTime(const DateTime &dateTime);
 //    DateTime(std::time_t time);
@@ -88,7 +83,6 @@ private: // methods
 //     * @return
 //     */
 //    int diffInSec(const DateTime &dt);
-//    std::string getString() { return getStringDateTime(); };
 //    std::string getStringMs();
 //    int getWeekdayNr();
 ////        boost::posix_time::ptime next01MinInterval();
