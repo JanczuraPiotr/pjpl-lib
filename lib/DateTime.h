@@ -94,8 +94,6 @@ private: // methods
 ////        boost::posix_time::ptime nextDayInterval();
 //    void nextSec();
 //    void now();
-//    virtual void set(std::time_t time);
-//
 //    DateTime &operator = (const std::string &time);
 //    DateTime operator + (const boost::posix_time::time_duration &step);
 //    DateTime operator - (const boost::posix_time::time_duration &step) ;

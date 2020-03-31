@@ -151,96 +151,71 @@ TEST_F(DateTimeTest, testDateTime_string_2017_02_29_23_59_59) {
     pjpl::String sData = "2017-02-29 23:59:59";
     try {
         pjpl::DateTime dateTime(sData);// boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::gregorian::bad_day_of_month> >);
-        FAIL() << "zły dzień w dacie 2017-02-29 23:59:59";
+        FAIL() << "nie wykryto złego dnia w dacie 2017-02-29 23:59:59";
     } catch (...) {
     }
 }
 
-//    void DateTimeTest::testGetStringDateTime() {
-//        std::string sd = "2018-02-28 23:59:59";
-//        try {
-//            pjpl::DateTime dt1(sd);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt1.getString() , dt1.getString() == sd);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd, false);
-//        }
-//
-//        sd = "2018-02-28 00:00:00";
-//        try {
-//            pjpl::DateTime dt2(sd);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt2.getString() , dt2.getString() == sd);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd, false);
-//        }
-//    }
-//    void DateTimeTest::testGetStringDate() {
-//        std::string sDateTime   = "2018-02-28 23:59:59";
-//        std::string sDate       = "2018-02-28";
-//        std::string sTime       = "23:59:59";
-//        try {
-//            pjpl::DateTime dt1(sDateTime);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime + " result = " + dt1.getStringDate() , dt1.getStringDate() == sDate);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime , false);
-//        }
-//
-//        sDateTime   = "2018-02-28 00:00:00";
-//        sDate       = "2018-02-28";
-//        sTime       = "00:00:00";
-//        try {
-//            pjpl::DateTime dt2(sDateTime);
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime + " result = " + dt2.getStringDate() , dt2.getStringDate() == sDate);
-//        } catch (...) {
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sDateTime , false);
-//        }
-//    }
+TEST_F(DateTimeTest, testGetStringDateTime){
+    std::string sd = "2018-02-28 23:59:59";
+    try {
+        pjpl::DateTime dt1(sd);
+        EXPECT_EQ(dt1.getString(), sd) << ("input = " + sd + " result = " + dt1.getString());
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sd);
+    }
 
-//
-//    void DateTimeTest::testSet_string() {
-//        std::string sd;
-//        pjpl::DateTime dt;
-//
-//        sd = "2018-02-28 00:00:00";
-//        dt.set(sd);
-//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt.getString(), dt.getString() == sd);
-//
-//        sd = "2000-11-11 23:59:59";
-//        dt.set(sd);
-//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt.getString(), dt.getString() == sd);
-//
-//        sd = "2018-02-11 23:59:59";
-//        dt.set(sd);
-//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt.getString(), dt.getString() == sd);
-//
-//        sd = "2016-02-28 23:59:59";
-//        dt.set(sd);
-//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt.getString(), dt.getString() == sd);
-//
-//        sd = "2016-02-29 23:59:59";
-//        dt.set(sd);
-//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " result = " + dt.getString(), dt.getString() == sd);
+    sd = "2018-02-28 00:00:00";
+    try {
+        pjpl::DateTime dt2(sd);
+        EXPECT_EQ(dt2.getString(), sd) << ("input = " + sd + " result = " + dt2.getString());
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sd);
+    }
+}
+
+TEST_F (DateTimeTest, testGetStringDate) {
+    std::string sDateTime   = "2018-02-28 23:59:59";
+    std::string sDate       = "2018-02-28";
+    std::string sTime       = "23:59:59";
+    try {
+        pjpl::DateTime dt1(sDateTime);
+        EXPECT_EQ(dt1.getStringDate(), sDate) << ("input = " + sDateTime + " result = " + dt1.getStringDate());
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sDateTime );
+    }
+
+    sDateTime   = "2018-02-28 00:00:00";
+    sDate       = "2018-02-28";
+    sTime       = "00:00:00";
+    try {
+        pjpl::DateTime dt2(sDateTime);
+        EXPECT_EQ(dt2.getStringDate(), sDate) << ("input = " + sDateTime + " result = " + dt2.getStringDate());
+    } catch (...) {
+        EXPECT_TRUE(false) << ("input = " + sDateTime);
+    }
+}
+
+//TEST_F(DateTimeTest, testNextSec) {
+//    {
+//        std::string sd = "2016-02-28 23:59:59";
+//        pjpl::DateTime dt(sd);
+//        dt.nextSec();
+//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2016-02-29 00:00:00");
 //    }
-//
-//    void DateTimeTest::testNextSec() {
-//        {
-//            std::string sd = "2016-02-28 23:59:59";
-//            pjpl::DateTime dt(sd);
-//            dt.nextSec();
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2016-02-29 00:00:00");
-//        }
-//        {
-//            std::string sd = "2017-02-28 23:59:59";
-//            pjpl::DateTime dt(sd);
-//            dt.nextSec();
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2017-03-01 00:00:00");
-//        }
-//        {
-//            std::string sd = "2018-12-31 23:59:59";
-//            pjpl::DateTime dt(sd);
-//            dt.nextSec();
-//            CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2019-01-01 00:00:00");
-//        }
+//    {
+//        std::string sd = "2017-02-28 23:59:59";
+//        pjpl::DateTime dt(sd);
+//        dt.nextSec();
+//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2017-03-01 00:00:00");
 //    }
+//    {
+//        std::string sd = "2018-12-31 23:59:59";
+//        pjpl::DateTime dt(sd);
+//        dt.nextSec();
+//        CPPUNIT_ASSERT_MESSAGE("input = " + sd + " po dt.nextSec() result = " + dt.getString(), dt.getString() == "2019-01-01 00:00:00");
+//    }
+//}
 //
 //    void DateTimeTest::testDiffSec1() {
 //        std::string sd1 = "2016-01-01 23:59:59";
