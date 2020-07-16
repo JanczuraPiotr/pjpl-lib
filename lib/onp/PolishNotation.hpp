@@ -10,7 +10,7 @@
 #include <vector>
 #include <map>
 
-#include "lib/def.h"
+#include "lib/def.hpp"
 #include "lib/app_ex.hpp"
 
 namespace pjpl::ex {

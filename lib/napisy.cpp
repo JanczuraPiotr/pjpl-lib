@@ -1,4 +1,4 @@
-#include "napisy.h"
+#include "napisy.hpp"
 
 namespace pjpl {
 

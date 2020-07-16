@@ -2,8 +2,8 @@
 // Created by piotr@janczura.pl on 2019.06.24
 //
 
-#include "PolishNotation.h"
-#include "Operators.h"
+#include "PolishNotation.hpp"
+#include "Operators.hpp"
 
 namespace pjpl::alg {
 

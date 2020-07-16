@@ -2,7 +2,7 @@
 // Created by piotr@janczura.pl on 2019.06.25
 //
 
-#include "Operators.h"
+#include "Operators.hpp"
 
 namespace pjpl::alg {
 

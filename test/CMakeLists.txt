@@ -5,14 +5,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/exe)
 add_executable(gtest main.cpp
         ../lib/alg.cpp                                      ../lib/alg.hpp
         ../lib/app_ex.cpp                                   ../lib/app_ex.hpp
-        ../lib/DateTime.cpp                                 ../lib/DateTime.h
-                                                            ../lib/def.h
-        ../lib/model_def.hpp
-        ../lib/napisy.cpp                                   ../lib/napisy.h
-        ../lib/Operators.cpp                                ../lib/Operators.h
-        ../lib/ParamsForFilter.cpp                          ../lib/ParamsForFilter.h
-        ../lib/PolishExpression.cpp                         ../lib/PolishExpression.h
-        ../lib/PolishNotation.cpp                           ../lib/PolishNotation.h
+        ../lib/DateTime.cpp                                 ../lib/DateTime.hpp
+        ../lib/def.hpp
+                                                            ../lib/onp/model_def.hpp
+        ../lib/napisy.cpp                                   ../lib/napisy.hpp
+        ../lib/onp/Operators.cpp                            ../lib/onp/Operators.hpp
+        ../lib/onp/ParamsForFilter.cpp                      ../lib/onp/ParamsForFilter.hpp
+        ../lib/onp/PolishExpression.cpp                     ../lib/onp/PolishExpression.hpp
+        ../lib/onp/PolishNotation.cpp                       ../lib/onp/PolishNotation.hpp
 
 
 #        ../lib/alg.cpp
@@ -23,8 +23,7 @@ add_executable(gtest main.cpp
 #        ../lib/strings.cpp
 #        ../lib/strings.h
 
-        DateTimeTest.cpp
-        DateTimeTest.h
+        DateTimeTest.cpp                                    DateTimeTest.hpp
         )
  
 find_package(GTest REQUIRED)

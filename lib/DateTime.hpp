@@ -8,7 +8,7 @@
 #include <string>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "../lib/def.h"
+#include "../lib/def.hpp"
 
 namespace pjpl {
 

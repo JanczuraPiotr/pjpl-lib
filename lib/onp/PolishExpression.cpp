@@ -2,7 +2,7 @@
 // Created by piotr@janczura.pl on 2019.06.26
 //
 
-#include "PolishExpression.h"
+#include "PolishExpression.hpp"
 
 
 namespace pjpl::alg {

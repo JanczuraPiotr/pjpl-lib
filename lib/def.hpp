@@ -2,8 +2,8 @@
 // Created by piotr@janczura.pl on 2020.01.20
 //
 
-#ifndef PJPL_LIB_DEF_H
-#define PJPL_LIB_DEF_H
+#ifndef PJPL_LIB_DEF_HPP
+#define PJPL_LIB_DEF_HPP
 
 #include <chrono>
 #include <boost/date_time/posix_time/posix_time.hpp>

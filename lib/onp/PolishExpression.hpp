@@ -6,8 +6,8 @@
 #define AUTOMATION_POLISHEXPRESSION_H
 
 
-#include "lib/def.h"
-#include "lib/PolishNotation.h"
+#include "lib/def.hpp"
+#include "PolishNotation.hpp"
 #include "lib/app_ex.hpp"
 
 namespace pjpl::alg {

@@ -15,8 +15,8 @@
 #include <iostream>
 #include <iomanip>
 
-#include "lib/def.h"
-#include "lib/DateTime.h"
+#include "lib/def.hpp"
+#include "lib/DateTime.hpp"
 
 namespace pjpl::model {
 

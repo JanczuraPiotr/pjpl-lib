@@ -2,12 +2,12 @@
 // Created by piotr@janczura.pl on 2020.01.20
 //
 
-#include "DateTimeTest.h"
+#include "DateTimeTest.hpp"
 
 #include <limits>
 #include <iostream>
 
-#include "../lib/DateTime.h"
+#include "../lib/DateTime.hpp"
 
 namespace test{
 

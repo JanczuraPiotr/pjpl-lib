@@ -5,7 +5,7 @@
  * Created on 13 września 2017, 16:46
  */
 
-#include "ParamsForFilter.h"
+#include "ParamsForFilter.hpp"
 
 namespace pjpl::model {
 

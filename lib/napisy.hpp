@@ -3,9 +3,6 @@
 #ifndef NAPISY_H
 #define NAPISY_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include <set>
 #include <string>
 #include <map>
