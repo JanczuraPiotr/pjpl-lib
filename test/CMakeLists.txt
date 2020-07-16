@@ -3,15 +3,17 @@ project(gtest)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/exe)
 
 add_executable(gtest main.cpp
-        ../lib/app_ex.cpp                                   ../lib/app_ex.h
-                                                            ../lib/def.h
-                                                            ../lib/conf.h
-        ../lib/gold.cpp                                     ../lib/gold.h
+        ../lib/alg.cpp                                      ../lib/alg.hpp
+        ../lib/app_ex.cpp                                   ../lib/app_ex.hpp
         ../lib/DateTime.cpp                                 ../lib/DateTime.h
+                                                            ../lib/def.h
+        ../lib/model_def.hpp
+        ../lib/napisy.cpp                                   ../lib/napisy.h
         ../lib/Operators.cpp                                ../lib/Operators.h
+        ../lib/ParamsForFilter.cpp                          ../lib/ParamsForFilter.h
         ../lib/PolishExpression.cpp                         ../lib/PolishExpression.h
         ../lib/PolishNotation.cpp                           ../lib/PolishNotation.h
-        ../lib/napisy.cpp                                   ../lib/napisy.h
+
 
 #        ../lib/alg.cpp
 #        ../lib/alg.h

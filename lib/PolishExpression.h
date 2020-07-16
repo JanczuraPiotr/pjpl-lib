@@ -8,10 +8,7 @@
 
 #include "lib/def.h"
 #include "lib/PolishNotation.h"
-#include "lib/app_ex.h"
-#include "lib/gold.h"
-
-// @work std::wstring -> std::string
+#include "lib/app_ex.hpp"
 
 namespace pjpl::alg {
 
@@ -30,24 +27,24 @@ class PolishExpression {
 
 public:
 
-    explicit PolishExpression();
+    PolishExpression();
     virtual ~PolishExpression() = default;
 
-    void setPostfix(const pjpl::alg::PolishNotation::Postfix &postfix);
-    virtual err_t calculate(pjpl::ParamsMap *params, bool &result);
+//    void setPostfix(const pjpl::alg::PolishNotation::Postfix &postfix);
+//    virtual err_t calculate(pjpl::ParamsMap *params, bool &result);
 
 private: // methods
 
-    virtual err_t _logic(bool &result);
+//    virtual err_t _logic(bool &result);
 
 private: // attributes
 
-    pjpl::alg::PolishNotation::Postfix postfix;
-    pjpl::ParamsMap *params;
+//    pjpl::alg::PolishNotation::Postfix postfix;
+//    pjpl::ParamsMap *params;
 
 };
 
 }
 
 
-#endif //AUTOMATION_POLISHEXPRESSION_H
+#endif

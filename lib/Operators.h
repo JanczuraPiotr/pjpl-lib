@@ -30,16 +30,16 @@ public:
      * @param token
      * @return operator
      */
-    static Type check(const std::wstring &token);
+    static Type check(const std::string &token);
     /*
      * Metoda dokonuje testu pierwszeństwa wykonania dwóch operacji. Jeżeli ich kolejność
      * odpowiada przyjętym regułom w matematyce zwraca true jeżeli nie zwraca false.
      */
-    static bool order(const std::wstring &op1, const std::wstring &op2);
+    static bool order(const std::string &op1, const std::string &op2);
     /*
      * Zwraca wartość liczbową priorytetu operatora
      */
-    static size_t priority(const std::wstring &op);
+    static size_t priority(const std::string &op);
 
 };
 

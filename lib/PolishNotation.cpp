@@ -9,6 +9,7 @@ namespace pjpl::alg {
 
 
 PolishNotation::PolishNotation()
+    : postfixList()
 {
 
 }
@@ -17,7 +18,7 @@ PolishNotation::~PolishNotation()
 {
 }
 
-void PolishNotation::expression(pjpl::AutoId makroId, const std::wstring &expression)
+void PolishNotation::expression(pjpl::AutoId makroId, const std::string &expression)
 {
     postfixList.insert(std::make_pair(makroId, buildPostfix(expression)));
 }
@@ -27,20 +28,20 @@ void PolishNotation::clear()
     postfixList.clear();
 }
 
-PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &expression)
+PolishNotation::Postfix PolishNotation::buildPostfix(const std::string &expression)
 {
     std::size_t                 cursor  = 0;
-    std::wstring                expr    = expression + L")";
-    pjpl::alg::Operators::Type   op      = pjpl::alg::Operators::Enum::UNKNOWN;
-    pjpl::alg::Operators::Type   opTmp   = pjpl::alg::Operators::Enum::UNKNOWN;
-    std::stack<std::wstring>    stack;
+    std::string                 expr    = expression + ")";
+    pjpl::alg::Operators::Type  op      = pjpl::alg::Operators::Enum::UNKNOWN;
+    pjpl::alg::Operators::Type  opTmp   = pjpl::alg::Operators::Enum::UNKNOWN;
+    std::stack<std::string>     stack;
     Postfix                     postfix;
-    std::wstring                token;
+    std::string                 token;
 
 
     size_t tokenizerStop = 0;
-    std::wstring leftValue;
-    stack.push(L"(");
+    std::string leftValue;
+    stack.push("(");
 
     while (!stack.empty()) {
         /*
@@ -50,8 +51,8 @@ PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &express
             ++cursor;
         }
 
-        if (expr.find(L"<\">", cursor) == cursor) {
-            token = pjpl::wstr::between(expr, L"<\">", L"<\"/>", cursor, tokenizerStop, true);
+        if (expr.find("<\">", cursor) == cursor) {
+            token = pjpl::wstr::between(expr, "<\">", "<\"/>", cursor, tokenizerStop, true);
             cursor = tokenizerStop;
         } else {
             token = pjpl::wstr::token(expr, cursor, tokenizerStop);
@@ -71,15 +72,15 @@ PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &express
                 stack.pop();
             }
             stack.push(token);
-            if (token == L"![" || token == L"=[") {
+            if (token == "![" || token == "=[") {
                 // od ![ lub =[ do ] znajduje się lista wartości, liczby lub zmienne.
-                token = pjpl::wstr::read(expression, cursor, cursor, L"]");
-                postfix.push_back(L"["+token+L"]");
+                token = pjpl::wstr::read(expression, cursor, cursor, "]");
+                postfix.push_back("["+token+"]");
             }
-        } else if (token == L"(") {
+        } else if (token == "(") {
             stack.push(token);
-        } else if (token == L")") {
-            while (stack.top() != L"(") {
+        } else if (token == ")") {
+            while (stack.top() != "(") {
                 postfix.push_back(stack.top());
                 stack.pop(); //usuwanie operatora
             };
@@ -100,7 +101,7 @@ PolishNotation::Postfix PolishNotation::buildPostfix(const std::wstring &express
                 if (leftValue.length() > 0) {
                 }
                 op = pjpl::alg::Operators::Enum::UNKNOWN;
-                leftValue = L"";
+                leftValue = "";
             }
         }
     };

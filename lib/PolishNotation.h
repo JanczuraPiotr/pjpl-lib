@@ -11,47 +11,49 @@
 #include <map>
 
 #include "lib/def.h"
-#include "lib/app_ex.h"
+#include "lib/app_ex.hpp"
 
-namespace pjpl {
+namespace pjpl::ex {
 
-    namespace ex {
-        class Notation : public pjpl::ex::general {
-        public:
-            Notation(const std::string &what, const std::string &file, int line)
-                    : pjpl::ex::general(what, file, line)
-            {}
-        };
-    };
 
-namespace alg {
-    class PolishNotation {
-    public:
-
-        typedef std::vector<std::wstring> Postfix;
-
-        explicit PolishNotation();
-
-        virtual ~PolishNotation();
-
-        void expression(pjpl::AutoId makroId, const std::wstring &expression);
-
-        Postfix postfix(pjpl::AutoId macroId);
-
-        void clear();
-
-    private: // methods
-
-        Postfix buildPostfix(const std::wstring &expression);
-
-    private: // attributes
-
-        std::map<pjpl::AutoId, Postfix> postfixList;
-
-    };
-    }
+class Notation : public pjpl::ex::general {
+public:
+    Notation(const std::string &what, const std::string &file, int line)
+            : pjpl::ex::general(what, file, line)
+    {}
+};
 
 }
+
+namespace pjpl::alg {
+
+class PolishNotation {
+public:
+
+    typedef std::vector<std::string> Postfix;
+
+    PolishNotation();
+
+    virtual ~PolishNotation();
+
+    void expression(AutoId makroId, const std::string &expression);
+
+    Postfix postfix(AutoId macroId);
+
+    void clear();
+
+private: // methods
+
+    Postfix buildPostfix(const std::string &expression);
+
+private: // attributes
+
+    std::map<AutoId, Postfix> postfixList;
+
+};
+}
+
+
 
 
 

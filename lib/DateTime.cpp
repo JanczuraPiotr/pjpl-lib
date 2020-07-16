@@ -279,7 +279,7 @@ DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
 //
 //    }
 //
-//    DateTime::DateTime(const std::wstring &timeStamp)
+//    DateTime::DateTime(const std::string &timeStamp)
 //    {
 //        std::string s(timeStamp.begin(), timeStamp.end());
 //        set(s);
