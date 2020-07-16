@@ -82,6 +82,7 @@ TEST_F(DateTimeTest, time_t)
         }
     }
 }
+
 TEST_F(DateTimeTest, testGetStringTime)
 {
     std::string sDateTime   = "2018-02-28 23:59:59";

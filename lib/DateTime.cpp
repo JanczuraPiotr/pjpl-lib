@@ -227,29 +227,29 @@ std::time_t DateTime::time_t() const noexcept {
 }
 
 DateTime::SimpleTM DateTime::simpleTm(const pjpl::String &timeStamp) {
-        SimpleTM stm{0,0,0,0,0,0};
-        // @work zdefiniować magiczne wartości
-        // YYYY-MM-DD hh:mm:ss
-        if (timeStamp.length() > 3){
-            stm.year = std::stoi(timeStamp.substr(0, 4));
-        }
-        if (timeStamp.length() > 6){
-            stm.mon = std::stoi(timeStamp.substr(5, 2));
-        }
-        if (timeStamp.length() > 9){
-            stm.mday = std::stoi(timeStamp.substr(8,2));
-        }
-        if (timeStamp.length() > 11){
-            stm.hour = std::stoi(timeStamp.substr(11, 2));
-        }
-        if (timeStamp.length() > 14){
-            stm.min = std::stoi(timeStamp.substr(14, 2));
-        }
-        if (timeStamp.length() > 17){
-            stm.sec = std::stoi(timeStamp.substr(17, 2));
-        }
-        return stm;
+    SimpleTM stm{0,0,0,0,0,0};
+    // @work zdefiniować magiczne wartości
+    // YYYY-MM-DD hh:mm:ss
+    if (timeStamp.length() > 3){
+        stm.year = std::stoi(timeStamp.substr(0, 4));
     }
+    if (timeStamp.length() > 6){
+        stm.mon = std::stoi(timeStamp.substr(5, 2));
+    }
+    if (timeStamp.length() > 9){
+        stm.mday = std::stoi(timeStamp.substr(8,2));
+    }
+    if (timeStamp.length() > 11){
+        stm.hour = std::stoi(timeStamp.substr(11, 2));
+    }
+    if (timeStamp.length() > 14){
+        stm.min = std::stoi(timeStamp.substr(14, 2));
+    }
+    if (timeStamp.length() > 17){
+        stm.sec = std::stoi(timeStamp.substr(17, 2));
+    }
+    return stm;
+}
 
 
 

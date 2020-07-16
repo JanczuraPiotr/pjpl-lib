@@ -1,7 +1,8 @@
-project(test)
+project(gtest)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/exe)
 
-add_executable(test_run main.cpp
+add_executable(gtest main.cpp
         ../lib/DateTime.cpp
         ../lib/DateTime.h
         ../lib/def.h
@@ -27,7 +28,7 @@ add_executable(test_run main.cpp
         DateTimeTest.cpp
         DateTimeTest.h
         )
-
+ 
 find_package(GTest REQUIRED)
 include_directories(${GTEST_INCLUDE_DIRS})
 include_directories(..)
@@ -39,7 +40,7 @@ if (NOT Boost_FOUND)
 endif ()
 
 
-target_link_libraries(test_run
+target_link_libraries(gtest
         ${GTEST_LIBRARIES}
         pthread
         boost_date_time
